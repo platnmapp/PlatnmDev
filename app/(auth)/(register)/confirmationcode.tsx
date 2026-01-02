@@ -29,7 +29,7 @@ export default function ConfirmationCodeScreen() {
     phone?: string;
     shouldSendOtp?: string;
   }>();
-  const { verifyOtp, signInWithEmail } = useAuth();
+  const { signInWithEmail } = useAuth();
 
   if (!email && !phone) {
     return (
@@ -70,7 +70,10 @@ export default function ConfirmationCodeScreen() {
       const newCode = [...code];
       newCode[idx] = text;
       setCode(newCode);
-      setError(null); // Clear error when user starts typing
+      // Clear error when user starts typing a new code
+      if (error) {
+        setError(null);
+      }
 
       if (text && idx < 5) {
         // Move to next field
@@ -105,16 +108,15 @@ export default function ConfirmationCodeScreen() {
       const hasCompleteName = profile?.first_name && profile?.last_name;
       const hasUsername = profile?.username;
 
+      // Navigate immediately based on profile state - use router.replace to avoid flash
       if (hasCompleteName && hasUsername) {
         router.replace("/(app)");
+      } else if (!hasCompleteName) {
+        router.replace("/name");
+      } else if (!hasUsername) {
+        router.replace("/username");
       } else {
-        if (!hasCompleteName) {
-          router.replace("/name");
-        } else if (!hasUsername) {
-          router.replace("/username");
-        } else {
-          router.replace("/linkaccount");
-        }
+        router.replace("/linkaccount");
       }
     } catch (error) {
       console.error("Error checking user profile:", error);
@@ -131,49 +133,74 @@ export default function ConfirmationCodeScreen() {
     setVerifying(true);
     setError(null);
 
-    let verificationError = null;
+    try {
+      let verificationError = null;
+      let session = null;
 
-    if (phone) {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.verifyOtp({
-        phone: phone,
-        token: codeToVerify,
-        type: "sms",
-      });
-      verificationError = error;
-    } else if (email) {
-      const result = await verifyOtp(email, codeToVerify);
-      verificationError = result?.error;
-    }
+      if (phone) {
+        const {
+          data: { session: phoneSession },
+          error,
+        } = await supabase.auth.verifyOtp({
+          phone: phone,
+          token: codeToVerify,
+          type: "sms",
+        });
+        verificationError = error;
+        session = phoneSession;
+      } else if (email) {
+        // Call verifyOtp directly with supabase to avoid AuthContext isLoading changes
+        const {
+          data: { session: emailSession },
+          error,
+        } = await supabase.auth.verifyOtp({
+          email: email,
+          token: codeToVerify,
+          type: "email",
+        });
+        verificationError = error;
+        session = emailSession;
+      }
 
-    setVerifying(false);
+      setVerifying(false);
 
-    if (verificationError) {
-      setError(verificationError.message || "Invalid code. Please try again.");
+      // If there's a verification error, show error and stay on page - DO NOT NAVIGATE
+      if (verificationError) {
+        console.log("Verification failed, staying on confirmation code page");
+        setError(verificationError.message || "Incorrect code. Please try again.");
+        // Clear the code so user can re-enter
+        setCode(["", "", "", "", "", ""]);
+        setActiveIdx(0);
+        // Focus first input after a brief delay
+        setTimeout(() => {
+          inputs.current[0]?.focus();
+        }, 50);
+        // CRITICAL: Return early - do NOT navigate anywhere
+        return;
+      }
+      
+      // Only proceed if there was no error (authentication successful)
+      // Use the session from verifyOtp response directly to navigate immediately
+      if (session?.user?.id) {
+        console.log("Verification successful, navigating immediately");
+        // Navigate directly without await to prevent any delays
+        checkUserProfileAndRedirect(session.user.id);
+      } else {
+        router.replace("/name");
+      }
+    } catch (error) {
+      // Catch any unexpected errors and stay on the page
+      console.error("Unexpected error during verification:", error);
+      setVerifying(false);
+      setError("An error occurred. Please try again.");
       // Clear the code so user can re-enter
       setCode(["", "", "", "", "", ""]);
       setActiveIdx(0);
-      inputs.current[0]?.focus();
-    } else {
-      // Authentication successful
-      setTimeout(async () => {
-        try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-
-          if (session?.user?.id) {
-            await checkUserProfileAndRedirect(session.user.id);
-          } else {
-            router.replace("/name");
-          }
-        } catch (error) {
-          console.error("Error getting session:", error);
-          router.replace("/name");
-        }
-      }, 100);
+      setTimeout(() => {
+        inputs.current[0]?.focus();
+      }, 50);
+      // DO NOT navigate - stay on this page
+      return;
     }
   };
 
@@ -206,11 +233,12 @@ export default function ConfirmationCodeScreen() {
   // Auto-submit when code is complete
   useEffect(() => {
     const fullCode = code.join("");
-    if (fullCode.length === 6 && !verifying && !sending && !error) {
+    // Only auto-submit if we have a full code, not currently verifying/sending, no existing error, and all digits are filled
+    if (fullCode.length === 6 && !verifying && !sending && !error && fullCode.split("").every(d => d !== "")) {
       handleVerify(fullCode);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code]);
+  }, [code, verifying, sending, error]);
 
   // Handle OTP autofill
   useEffect(() => {

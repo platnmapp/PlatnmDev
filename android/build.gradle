@@ -30,8 +30,6 @@ allprojects {
     google()
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
-    
-    // Removed Apple Maven repo - using web auth instead
   }
 }
 

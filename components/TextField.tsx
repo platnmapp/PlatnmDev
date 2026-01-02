@@ -117,7 +117,7 @@ export const TextField: React.FC<TextFieldProps> = ({
   const shouldReservePasswordSpace = hasPasswordToggle;
 
   return (
-    <View className="w-full">
+    <View className="w-full" style={{ overflow: "visible" }}>
       <View
         className={`bg-[#373737] flex-row items-center px-6 py-5 rounded-[10px] border ${getBorderColor()} ${className || ""}`}
         style={[style, { position: "relative", overflow: "visible" }]}

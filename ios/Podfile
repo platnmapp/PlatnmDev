@@ -12,10 +12,8 @@ install! 'cocoapods',
   :deterministic_uuids => false
 
 prepare_react_native_project!
-config = {}
 
 target 'platnm' do
-  use_frameworks! :linkage => :static
   use_expo_modules!
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
@@ -43,13 +41,6 @@ target 'platnm' do
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
   )
-end
-
-target 'ShareExtension' do
-  use_frameworks!
-
-  # Pods for the Share Extension
-end
 
   post_install do |installer|
     react_native_post_install(
@@ -67,14 +58,6 @@ end
         resource_bundle_target.build_configurations.each do |config|
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
-    end
-  end
-  
-  # Configure ShareExtension
-  installer.pods_project.targets.each do |target|
-    if target.name == 'ShareExtension'
-      target.build_configurations.each do |config|
-        config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'YES'
       end
     end
   end

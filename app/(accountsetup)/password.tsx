@@ -75,10 +75,8 @@ export default function PasswordSetup() {
       console.log("Password set successfully");
       dismissKeyboard();
       
-      // Navigate to notifications page
-      setTimeout(() => {
-        router.replace("/notifications");
-      }, 100);
+      // Navigate to notifications page immediately
+      router.replace("/notifications");
     } catch (error: any) {
       console.error("Error setting password:", error);
       Alert.alert("Error", `Something went wrong: ${error?.message || "Please try again."}`);
@@ -117,7 +115,25 @@ export default function PasswordSetup() {
             <View>
               {isValidPassword && password.length > 0 ? (
                 // Success state: Wrap TextField with green border (1px to match TextField border)
-                <View className="border border-[#027b1b] rounded-[10px]" style={{ overflow: 'visible' }}>
+                <View style={{ overflow: 'visible' }}>
+                  <View className="border border-[#027b1b] rounded-[10px]" style={{ overflow: 'visible' }}>
+                    <TextField
+                      placeholder="Password"
+                      value={password}
+                      onChangeText={setPassword}
+                      autoCapitalize="none"
+                      textAlignVertical="center"
+                      showPasswordToggle={true}
+                      passwordVisible={showPassword}
+                      onPasswordToggle={() => setShowPassword(!showPassword)}
+                      state="idle"
+                      className="border-0"
+                    />
+                  </View>
+                </View>
+              ) : (
+                // Normal/Error state: Use TextField normally
+                <View style={{ overflow: 'visible' }}>
                   <TextField
                     placeholder="Password"
                     value={password}
@@ -127,23 +143,9 @@ export default function PasswordSetup() {
                     showPasswordToggle={true}
                     passwordVisible={showPassword}
                     onPasswordToggle={() => setShowPassword(!showPassword)}
-                    state="idle"
-                    className="border-0"
+                    state={getTextFieldState()}
                   />
                 </View>
-              ) : (
-                // Normal/Error state: Use TextField normally
-                <TextField
-                  placeholder="Password"
-                  value={password}
-                  onChangeText={setPassword}
-                  autoCapitalize="none"
-                  textAlignVertical="center"
-                  showPasswordToggle={true}
-                  passwordVisible={showPassword}
-                  onPasswordToggle={() => setShowPassword(!showPassword)}
-                  state={getTextFieldState()}
-                />
               )}
 
               {/* Validation Requirements - Always show, but change color based on state */}

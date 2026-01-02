@@ -14,7 +14,7 @@ import {
 import * as Animatable from "react-native-animatable";
 import SkeletonLoader from "../../../components/SkeletonLoader";
 import { BackArrow } from "../../../components/BackArrow";
-import { Heading1, BodyMedium } from "../../../components/Typography";
+import { BodyMedium } from "../../../components/Typography";
 import { SearchBar } from "../../../components/SearchBar";
 import { Button } from "../../../components/Button";
 import {
@@ -372,10 +372,14 @@ export default function SongSelectionScreen() {
           favoriteSongInput
         );
       }
-      router.push("/(app)");
+      router.push("/(app)/(onboarding)/add-friends");
     } catch (error) {
       console.error("Error saving favorite songs:", error);
     }
+  };
+
+  const handleMaybeLater = () => {
+    router.push("/(app)/(onboarding)/add-friends");
   };
 
   const dismissKeyboard = () => {
@@ -393,18 +397,18 @@ export default function SongSelectionScreen() {
         duration={500}
         className="flex-1 bg-[#0E0E0E] p-5 pt-20"
       >
-        <BackArrow
-          className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
-          onPress={() => router.back()}
-        />
+        {/* Header with Back Arrow and Centered Title on same line */}
+        <View className="absolute top-12 left-0 right-0 flex-row items-center justify-center z-10" style={{ height: 32 }}>
+          <BackArrow
+            className="absolute left-5 active:bg-neutral-800"
+            onPress={() => router.back()}
+          />
+          <BodyMedium className="text-white text-center">
+            Select up to 3 of your favorite songs.
+          </BodyMedium>
+        </View>
 
         <View className="flex-1 justify-start pt-10">
-          {/* Title - mb-8 (32px) */}
-          <View className="mb-8">
-            <Heading1 className="text-white">
-              Select up to 3 of your favorite songs.
-            </Heading1>
-          </View>
 
           {/* Search Bar - mb-6 (24px) */}
           <View className="mb-6">
@@ -497,7 +501,7 @@ export default function SongSelectionScreen() {
         </ScrollView>
 
         {/* Continue Button */}
-        <View className="pt-4">
+        <View className="pt-4 gap-3">
           <Button
             variant="primary"
             onPress={handleContinue}
@@ -505,6 +509,13 @@ export default function SongSelectionScreen() {
             fullWidth
           >
             Continue
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={handleMaybeLater}
+            fullWidth
+          >
+            Maybe later
           </Button>
         </View>
       </View>

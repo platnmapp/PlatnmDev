@@ -142,6 +142,15 @@ const InitialLayout = () => {
       wasOnConfirmationCodeRef.current = true;
       lastPathRef.current = "confirmationcode";
     }
+    
+    // Reset the confirmation code tracking once we're in account setup
+    if (inAccountSetupGroup && wasOnConfirmationCodeRef.current) {
+      // Give it a moment for navigation to settle, then reset
+      setTimeout(() => {
+        wasOnConfirmationCodeRef.current = false;
+        lastPathRef.current = "";
+      }, 100);
+    }
 
     // Additional check: if we were just on confirmationcode and now on profile,
     // it's likely a navigation glitch during auth flow
@@ -164,7 +173,8 @@ const InitialLayout = () => {
     console.log("Should redirect?");
 
     // COMPLETELY DISABLE redirects during auth flow to prevent interference
-    if (isOnAuthFlow || isUnexpectedProfileRedirect) {
+    // Also prevent redirects if user was just on confirmation code (give navigation time to settle)
+    if (isOnAuthFlow || isUnexpectedProfileRedirect || wasOnConfirmationCodeRef.current) {
       console.log(
         "NO REDIRECT: User is in auth flow or unexpected redirect detected, letting them complete it"
       );
@@ -197,7 +207,10 @@ const InitialLayout = () => {
       // If the user is signed in
       if (user) {
         // Check if user has completed onboarding
-        if (!hasCompletedOnboarding && !inOnboardingGroup) {
+        // BUT: Don't redirect if user is in account setup flow (name, username, etc.)
+        // They should complete account setup before onboarding
+        // Also don't redirect if we were just on confirmation code (navigation in progress)
+        if (!hasCompletedOnboarding && !inOnboardingGroup && !inAccountSetupGroup && !isOnConfirmationCode && !wasOnConfirmationCodeRef.current) {
           console.log(
             "REDIRECT: User authenticated but not onboarded, redirecting to onboarding"
           );

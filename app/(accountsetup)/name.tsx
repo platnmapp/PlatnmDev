@@ -69,10 +69,8 @@ export default function NameSetup() {
         duration={500}
         className="flex-1 bg-[#0E0E0E] p-5 pt-20"
       >
-        <BackArrow
-          className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
-          onPress={() => router.back()}
-        />
+      {/* No back button on name page - hide it but keep layout spacing */}
+      <View className="absolute top-12 left-5 w-8 h-8" />
 
         <View className="flex-1 justify-start pt-10">
           {/* Title and Description - gap-3 (12px) */}

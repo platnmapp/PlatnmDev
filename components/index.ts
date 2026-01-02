@@ -6,6 +6,7 @@
 export { Button, TextButton } from "./Button";
 export type { ButtonVariant, ButtonSize, ButtonState } from "./Button";
 export { SelectionTile } from "./SelectionTile";
+export { FriendSelectionTile } from "./FriendSelectionTile";
 export { IconButton } from "./IconButton";
 export { NotificationButton } from "./NotificationButton";
 export { TextField } from "./TextField";
