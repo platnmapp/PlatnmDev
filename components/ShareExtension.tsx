@@ -380,7 +380,7 @@ export default function ShareExtension({
           className="flex-row items-center justify-center mb-6"
           style={{ position: "relative" }}
         >
-          <Text className="text-white text-lg font-bold">Platnm</Text>
+          <Text className="text-white text-lg font-bold">PLTNM</Text>
           <TouchableOpacity
             onPress={onDismiss}
             style={{ position: "absolute", right: 0 }}

@@ -1,3 +1,4 @@
+import { useFonts } from "expo-font";
 import { router } from "expo-router";
 import "nativewind";
 import React, { useEffect, useRef, useState } from "react";
@@ -12,6 +13,14 @@ const windowWidth = Dimensions.get("window").width;
 
 // Intro Screen 1 - Light theme
 function IntroOne() {
+  const [fontsLoaded] = useFonts({
+    "Benzin-ExtraBold": require("../../assets/fonts/Benzin-ExtraBold.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <View className="flex-1 bg-white justify-center items-center px-6">
       <Image
@@ -19,7 +28,12 @@ function IntroOne() {
         style={{ width: 128, height: 137, marginBottom: 24 }}
         resizeMode="contain"
       />
-      <Text className="text-black text-4xl font-bold mb-2">platnm</Text>
+      <Text 
+        className="text-black mb-2" 
+        style={{ fontFamily: 'Benzin-ExtraBold', fontSize: 48 }}
+      >
+        platnm
+      </Text>
       <Text className="text-gray-600 text-lg">Put People On</Text>
     </View>
   );
@@ -29,6 +43,9 @@ function IntroOne() {
 function IntroTwo() {
   const { signInWithApple, isLoading } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [fontsLoaded] = useFonts({
+    "Benzin-ExtraBold": require("../../assets/fonts/Benzin-ExtraBold.ttf"),
+  });
 
   const handleAppleSignIn = async () => {
     setIsSigningIn(true);
@@ -45,6 +62,10 @@ function IntroTwo() {
     }
   };
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <View className="flex-1 bg-[#0e0e0e] relative">
       {/* Logo Section - centered horizontally at top */}
@@ -56,7 +77,10 @@ function IntroTwo() {
             resizeMode="contain"
           />
         </View>
-        <Text className="text-white text-[48px] font-extrabold mb-0 leading-[48px]">
+        <Text 
+          className="text-white mb-0"
+          style={{ fontFamily: 'Benzin-ExtraBold', fontSize: 48, lineHeight: 48 * 1.2 }}
+        >
           platnm
         </Text>
         <Text className="text-[#b4b4b4] text-[20px] text-center">
