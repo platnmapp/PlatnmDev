@@ -11,7 +11,7 @@
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.platnm.app.v2",
+      "bundleIdentifier": "com.leonardodeltoro.platnm.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppleMusicUsageDescription": "This app uses Apple Music to let you select and share your favorite songs with friends."
@@ -70,7 +70,9 @@
       "router": {},
       "eas": {
         "projectId": "2e748522-b7ea-456b-a2fa-121c22eccef9"
-      }
+      },
+      "supabaseUrl": "https://uirmafqpkulwkkpyfmrj.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpcm1hZnFwa3Vsd2trcHlmbXJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDEwMjMsImV4cCI6MjA4MDM3NzAyM30.OwH5ZtpySBNAXaV4-C1Am1-oLJi42RoXc_3yqgQo-PI"
     },
     "owner": "adamchaabane1234"
   }

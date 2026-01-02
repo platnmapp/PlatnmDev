@@ -13,7 +13,7 @@ RCT_EXPORT_MODULE();
 }
 
 RCT_EXPORT_METHOD(setSessionData:(NSString *)sessionData) {
-    NSUserDefaults *sharedDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"group.com.platnm.app.v2"];
+    NSUserDefaults *sharedDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"group.com.platnm.5a1fixcuqweopqweopqwieopwqieopqwieoiqwopieopqiwopeiqwpoeioqwiepoqiwjdnaskncklnsdlfnlkas9635.app"];
     
     if (sessionData && sessionData.length > 0) {
         [sharedDefaults setObject:sessionData forKey:@"supabase_session_data"];
@@ -25,7 +25,7 @@ RCT_EXPORT_METHOD(setSessionData:(NSString *)sessionData) {
 }
 
 RCT_EXPORT_METHOD(clearSessionData) {
-    NSUserDefaults *sharedDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"group.com.platnm.app.v2"];
+    NSUserDefaults *sharedDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"group.com.platnm.5a1fixcuqweopqweopqwieopwqieopqwieoiqwopieopqiwopeiqwpoeioqwiepoqiwjdnaskncklnsdlfnlkas9635.app"];
     [sharedDefaults removeObjectForKey:@"supabase_session_data"];
     [sharedDefaults synchronize];
 }

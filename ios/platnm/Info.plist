@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>platnm</string>
-          <string>com.platnm.app.v2</string>
+          <string>com.leonardodeltoro.platnm.app</string>
         </array>
       </dict>
       <dict>
