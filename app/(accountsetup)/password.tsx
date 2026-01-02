@@ -75,15 +75,10 @@ export default function PasswordSetup() {
       console.log("Password set successfully");
       dismissKeyboard();
       
-      // Wait a moment for auth state to settle, then navigate
-      // Using setTimeout to avoid any race conditions with auth state updates
+      // Navigate to notifications page
       setTimeout(() => {
-        console.log("Navigating to linkaccount page...");
-        router.push({
-          pathname: "/linkaccount",
-          params: { context: "onboarding" },
-        });
-      }, 200);
+        router.replace("/notifications");
+      }, 100);
     } catch (error: any) {
       console.error("Error setting password:", error);
       Alert.alert("Error", `Something went wrong: ${error?.message || "Please try again."}`);
@@ -99,7 +94,7 @@ export default function PasswordSetup() {
       <Animatable.View
         animation="fadeIn"
         duration={500}
-        className="flex-1 bg-[#111] p-5 pt-20"
+        className="flex-1 bg-[#0E0E0E] p-5 pt-20"
       >
         <BackArrow
           className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
@@ -121,8 +116,8 @@ export default function PasswordSetup() {
           <View className="mb-6">
             <View>
               {isValidPassword && password.length > 0 ? (
-                // Success state: Wrap TextField with green border
-                <View className="border-2 border-[#027b1b] rounded-[10px]">
+                // Success state: Wrap TextField with green border (1px to match TextField border)
+                <View className="border border-[#027b1b] rounded-[10px]" style={{ overflow: 'visible' }}>
                   <TextField
                     placeholder="Password"
                     value={password}

@@ -10,6 +10,8 @@ export { IconButton } from "./IconButton";
 export { NotificationButton } from "./NotificationButton";
 export { TextField } from "./TextField";
 export type { TextFieldState } from "./TextField";
+export { SearchBar } from "./SearchBar";
+export type { SearchBarState } from "./SearchBar";
 export { BackArrow } from "./BackArrow";
 export {
   Typography,

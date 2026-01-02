@@ -191,10 +191,9 @@ export default function BirthdaySetup() {
     year.length === 4 &&
     !saving;
 
-  // Get border color based on focus/value - matches Figma: white when focused or has value
+  // Get border color based on focus - white border only when actively focused
   const getBorderColor = (field: "month" | "day" | "year") => {
-    const value = field === "month" ? month : field === "day" ? day : year;
-    if (focusedField === field || value) {
+    if (focusedField === field) {
       return "border-white";
     }
     return "border-[rgba(51,51,51,0.1)]";
@@ -205,7 +204,7 @@ export default function BirthdaySetup() {
       <Animatable.View
         animation="fadeIn"
         duration={500}
-        className="flex-1 bg-[#111] p-5 pt-20"
+        className="flex-1 bg-[#0E0E0E] p-5 pt-20"
       >
         <BackArrow
           className="absolute top-12 left-5 pt-1 active:bg-neutral-800"

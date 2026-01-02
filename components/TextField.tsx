@@ -120,7 +120,7 @@ export const TextField: React.FC<TextFieldProps> = ({
     <View className="w-full">
       <View
         className={`bg-[#373737] flex-row items-center px-6 py-5 rounded-[10px] border ${getBorderColor()} ${className || ""}`}
-        style={[style, { position: "relative" }]}
+        style={[style, { position: "relative", overflow: "visible" }]}
       >
         <TextInput
           className={`flex-1 ${getTextColor()}`}

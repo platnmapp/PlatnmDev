@@ -4,13 +4,19 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  Keyboard,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
+import * as Animatable from "react-native-animatable";
 import SkeletonLoader from "../../../components/SkeletonLoader";
+import { BackArrow } from "../../../components/BackArrow";
+import { Heading1, BodyMedium } from "../../../components/Typography";
+import { SearchBar } from "../../../components/SearchBar";
+import { Button } from "../../../components/Button";
 import {
   AppleMusicAPI,
   AppleMusicTokens,
@@ -372,36 +378,45 @@ export default function SongSelectionScreen() {
     }
   };
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   if (loading) {
     return <SkeletonLoader />;
   }
 
   return (
-    <View className="flex-1 bg-black text-white">
-      <View className="pt-12 px-4">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold mt-4">
-          Select up to 3 of your favorite songs.
-        </Text>
-        <View className="flex-row items-center bg-neutral-800 rounded-lg px-4 mt-4">
-          <Ionicons name="search" size={20} color="gray" />
-          <TextInput
-            className="flex-1 text-white p-2 ml-2"
-            placeholder="Search for songs..."
-            placeholderTextColor="gray"
-            value={searchText}
-            onChangeText={handleSearch}
-          />
-          {searchText ? (
-            <TouchableOpacity onPress={() => handleSearch("")}>
-              <Ionicons name="close" size={20} color="gray" />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-      </View>
-      <ScrollView className="px-4 mt-4">
+    <TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
+      <Animatable.View
+        animation="fadeIn"
+        duration={500}
+        className="flex-1 bg-[#0E0E0E] p-5 pt-20"
+      >
+        <BackArrow
+          className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
+          onPress={() => router.back()}
+        />
+
+        <View className="flex-1 justify-start pt-10">
+          {/* Title - mb-8 (32px) */}
+          <View className="mb-8">
+            <Heading1 className="text-white">
+              Select up to 3 of your favorite songs.
+            </Heading1>
+          </View>
+
+          {/* Search Bar - mb-6 (24px) */}
+          <View className="mb-6">
+            <SearchBar
+              placeholder="Search for songs..."
+              value={searchText}
+              onChangeText={handleSearch}
+            />
+          </View>
+
+        {/* Content Area */}
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {searchText ? (
           <View className="flex-row flex-wrap justify-between">
             {songs.map((song) => (
@@ -479,16 +494,21 @@ export default function SongSelectionScreen() {
             </Text>
           </View>
         )}
-      </ScrollView>
-      <View className="px-4 py-2">
-        <TouchableOpacity
-          className="bg-white rounded-full py-4 items-center"
-          onPress={handleContinue}
-          disabled={selectedSongs.length === 0}
-        >
-          <Text className="text-black font-bold">Continue</Text>
-        </TouchableOpacity>
+        </ScrollView>
+
+        {/* Continue Button */}
+        <View className="pt-4">
+          <Button
+            variant="primary"
+            onPress={handleContinue}
+            disabled={selectedSongs.length === 0}
+            fullWidth
+          >
+            Continue
+          </Button>
+        </View>
       </View>
-    </View>
+    </Animatable.View>
+    </TouchableWithoutFeedback>
   );
 }

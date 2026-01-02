@@ -159,7 +159,7 @@ export default function UsernameSetup() {
       <Animatable.View
         animation="fadeIn"
         duration={500}
-        className="flex-1 bg-[#111] p-5 pt-20"
+        className="flex-1 bg-[#0E0E0E] p-5 pt-20"
       >
         <BackArrow
           className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
@@ -180,28 +180,14 @@ export default function UsernameSetup() {
           {/* Username Input Field */}
           <View className="mb-6">
             <View>
-              {isAvailable === true && username.length >= 3 ? (
-                // Success state: Wrap TextField with green border
-                <View className="border-2 border-[#027b1b] rounded-[10px]">
-                  <TextField
-                    placeholder="Username"
-                    value={username}
-                    onChangeText={(text) =>
-                      setUsername(text.replace(/[^a-zA-Z0-9_$]/g, ""))
-                    }
-                    autoCapitalize="none"
-                    textAlignVertical="center"
-                    showClearButton={!!username}
-                    onClear={() => {
-                      setUsername("");
-                      setIsAvailable(null);
-                    }}
-                    state="idle"
-                    className="border-0"
-                  />
-                </View>
-              ) : (
-                // Normal/Error state: Use TextField normally
+              {/* Always wrap in View, conditionally apply border */}
+              <View
+                className={
+                  isAvailable === true && username.length >= 3
+                    ? "border border-[#027b1b] rounded-[10px]"
+                    : ""
+                }
+              >
                 <TextField
                   placeholder="Username"
                   value={username}
@@ -216,8 +202,13 @@ export default function UsernameSetup() {
                     setIsAvailable(null);
                   }}
                   state={getTextFieldState()}
+                  className={
+                    isAvailable === true && username.length >= 3
+                      ? "border-0"
+                      : ""
+                  }
                 />
-              )}
+              </View>
 
               {/* Status message */}
               {(username.length >= 3 || (username.length > 0 && username.length < 3)) && (

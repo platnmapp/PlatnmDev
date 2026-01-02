@@ -67,7 +67,7 @@ export default function NameSetup() {
       <Animatable.View
         animation="fadeIn"
         duration={500}
-        className="flex-1 bg-[#111] p-5 pt-20"
+        className="flex-1 bg-[#0E0E0E] p-5 pt-20"
       >
         <BackArrow
           className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
