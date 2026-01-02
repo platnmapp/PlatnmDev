@@ -274,6 +274,9 @@ class SupabaseExtensionService {
             throw NSError(domain: "SupabaseExtensionService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid function URL"])
         }
         
+        print("🔍 Fetching music content for URL: \(urlString)")
+        print("🔍 Calling edge function: \(url.absoluteString)")
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -283,15 +286,45 @@ class SupabaseExtensionService {
         let parameters = ["link": urlString]
         request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw NSError(domain: "SupabaseExtensionService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch music content"])
+            guard let httpResponse = response as? HTTPURLResponse else {
+                let errorMsg = "Invalid response type"
+                print("❌ \(errorMsg)")
+                throw NSError(domain: "SupabaseExtensionService", code: 500, userInfo: [NSLocalizedDescriptionKey: errorMsg])
+            }
+            
+            print("📡 Response status code: \(httpResponse.statusCode)")
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Try to parse error message from response
+                let errorMessage: String
+                if let errorData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let error = errorData["error"] as? String {
+                    errorMessage = error
+                } else if let responseString = String(data: data, encoding: .utf8) {
+                    errorMessage = responseString
+                } else {
+                    errorMessage = "HTTP \(httpResponse.statusCode): \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))"
+                }
+                
+                print("❌ Failed to fetch music content: \(errorMessage)")
+                throw NSError(domain: "SupabaseExtensionService", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+            }
+            
+            print("✅ Received response data: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
+            
+            let musicContent = try JSONDecoder().decode(MusicContent.self, from: data)
+            print("✅ Successfully decoded music content: \(musicContent.title) by \(musicContent.artist)")
+            return musicContent
+        } catch let error as NSError {
+            print("❌ Network error: \(error.localizedDescription)")
+            throw error
+        } catch {
+            print("❌ Decoding error: \(error.localizedDescription)")
+            throw NSError(domain: "SupabaseExtensionService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to decode response: \(error.localizedDescription)"])
         }
-        
-        let musicContent = try JSONDecoder().decode(MusicContent.self, from: data)
-        return musicContent
     }
 }
 

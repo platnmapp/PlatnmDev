@@ -119,6 +119,9 @@ class ShareViewController: UIViewController, UITableViewDataSource, UITableViewD
         }
 
         let urlType = UTType.url.identifier
+        let textType = UTType.plainText.identifier
+        
+        // First try to get as URL
         if itemProvider.hasItemConformingToTypeIdentifier(urlType) {
             itemProvider.loadItem(forTypeIdentifier: urlType, options: nil) { [weak self] (item, error) in
                 DispatchQueue.main.async {
@@ -127,19 +130,47 @@ class ShareViewController: UIViewController, UITableViewDataSource, UITableViewD
                         return
                     }
                     
-                    // Check if it's a Spotify or Apple Music link
-                    guard let host = url.host, host.contains("spotify.com") || host.contains("music.apple.com") else {
-                        self?.showErrorAndDismiss(message: "Only Spotify and Apple Music links can be shared.")
+                    self?.validateAndProcessURL(url: url)
+                }
+            }
+        } 
+        // If not a URL type, try plain text (Spotify sometimes shares as text)
+        else if itemProvider.hasItemConformingToTypeIdentifier(textType) {
+            itemProvider.loadItem(forTypeIdentifier: textType, options: nil) { [weak self] (item, error) in
+                DispatchQueue.main.async {
+                    guard let text = item as? String else {
+                        self?.showErrorAndDismiss(message: "Failed to read shared content.")
                         return
                     }
                     
-                    self?.sharedURL = url
-                    self?.processSharedContent(url: url.absoluteString)
+                    // Try to extract URL from text
+                    if let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                        self?.validateAndProcessURL(url: url)
+                    } else {
+                        // Maybe the URL is embedded in text, try to find it
+                        if let urlRange = text.range(of: #"https?://[^\s]+"#, options: .regularExpression),
+                           let url = URL(string: String(text[urlRange])) {
+                            self?.validateAndProcessURL(url: url)
+                        } else {
+                            self?.showErrorAndDismiss(message: "Could not find a valid URL in the shared content.")
+                        }
+                    }
                 }
             }
         } else {
             showErrorAndDismiss(message: "Only URLs can be shared to Platnm.")
         }
+    }
+    
+    private func validateAndProcessURL(url: URL) {
+        // Check if it's a Spotify or Apple Music link
+        guard let host = url.host, host.contains("spotify.com") || host.contains("music.apple.com") else {
+            showErrorAndDismiss(message: "Only Spotify and Apple Music links can be shared.")
+            return
+        }
+        
+        sharedURL = url
+        processSharedContent(url: url.absoluteString)
     }
     
     private func processSharedContent(url: String) {
@@ -186,7 +217,14 @@ class ShareViewController: UIViewController, UITableViewDataSource, UITableViewD
                 
             } catch {
                 await MainActor.run {
-                    self.showErrorAndDismiss(message: "Failed to load content: \(error.localizedDescription)")
+                    let errorMessage = error.localizedDescription
+                    print("❌ Error in processSharedContent: \(errorMessage)")
+                    print("❌ Error type: \(type(of: error))")
+                    if let nsError = error as? NSError {
+                        print("❌ Error domain: \(nsError.domain), code: \(nsError.code)")
+                        print("❌ Error userInfo: \(nsError.userInfo)")
+                    }
+                    self.showErrorAndDismiss(message: "Failed to load content: \(errorMessage)")
                 }
             }
         }

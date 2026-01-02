@@ -1,10 +1,27 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import { createClient } from "@supabase/supabase-js";
 import { CacheService } from "./cacheService";
 import { supabase } from "./supabase"; // Import main supabase client
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
+// Get environment variables from process.env or Constants (same pattern as supabase.ts)
+const supabaseUrl = 
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 
+  Constants.expoConfig?.extra?.supabaseUrl ||
+  "";
+
+const supabaseAnonKey = 
+  process.env.EXPO_PUBLIC_SUPABASE_KEY || 
+  Constants.expoConfig?.extra?.supabaseAnonKey ||
+  "";
+
+// Validate environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  const errorMessage = 
+    "Missing Supabase configuration. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY in your .env file or app.json.";
+  console.error("❌ ShareExtensionService Configuration Error:", errorMessage);
+  throw new Error(errorMessage);
+}
 
 // Create a separate client for share extension to avoid conflicts
 // Note: For demo/testing in main app, we'll use the main supabase client for database operations
