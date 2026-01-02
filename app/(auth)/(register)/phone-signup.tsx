@@ -1,29 +1,26 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import "nativewind";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Keyboard,
-  Pressable,
   Text,
-  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import * as Animatable from "react-native-animatable";
-import { BodyMedium } from "../../../components/Typography";
+import { Button } from "../../../components/Button";
+import { TextField } from "../../../components/TextField";
+import { BackArrow } from "../../../components/BackArrow";
+import { Heading1, BodyMedium } from "../../../components/Typography";
 import { supabase } from "../../../lib/supabase";
 
 export default function PhoneSignUp() {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
-    setIsFocused(false);
   };
 
   const handlePhoneNumberChange = (value: string) => {
@@ -81,62 +78,49 @@ export default function PhoneSignUp() {
         duration={500}
         className="flex-1 bg-[#111] p-5 pt-20"
       >
-        <Pressable
+        <BackArrow
           className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
           onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </Pressable>
+        />
         <View className="flex-1 justify-start pt-10">
-          <Text className="text-white text-2xl font-bold mb-2">
+          <Heading1 className="text-white mb-2">
             What&apos;s your phone number?
-          </Text>
+          </Heading1>
           <BodyMedium className="text-[#7f7f7f] mb-6">
-            Enter your 10-digit US phone number to continue
+            Enter the mobile number where you can be contacted
           </BodyMedium>
 
-          <TextInput
-            className={
-              `bg-[#222] text-white rounded-lg px-4 py-4 mb-5 border text-lg ` +
-              (isFocused ? "border-white" : "border-transparent")
-            }
+          <TextField
             placeholder="(555) 555-5555"
-            placeholderTextColor="#b0b0b0"
             value={phoneNumber}
             onChangeText={handlePhoneNumberChange}
             keyboardType="phone-pad"
             autoCapitalize="none"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            textAlignVertical="center"
+            showClearButton={!!phoneNumber}
+            onClear={() => setPhoneNumber("")}
             maxLength={14}
+            className="mb-5"
           />
 
-          <Pressable
+          <Button
+            variant="primary"
             onPress={handleContinue}
-            className={`rounded-full py-3 items-center mb-4 active:bg-neutral-800 ${
-              isButtonActive ? "bg-white" : "bg-gray-600"
-            }`}
             disabled={!isButtonActive}
+            loading={loading}
+            fullWidth
+            className="mb-4"
           >
-            {loading ? (
-              <ActivityIndicator color="black" />
-            ) : (
-              <Text
-                className={` font-medium ${isButtonActive ? "text-black" : "text-gray-400"}`}
-              >
-                Continue
-              </Text>
-            )}
-          </Pressable>
+            Continue
+          </Button>
 
-          <Pressable
-            className="border border-white rounded-full py-3 items-center active:bg-neutral-800 py-3"
-            onPress={() => router.push("signup" as any)}
+          <Button
+            variant="secondary"
+            onPress={() => router.push("/signup")}
+            fullWidth
           >
-            <Text className="text-white text-lg">
-              Sign up with email address
-            </Text>
-          </Pressable>
+            Sign up with email address
+          </Button>
         </View>
       </Animatable.View>
     </TouchableWithoutFeedback>
