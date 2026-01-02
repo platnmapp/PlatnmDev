@@ -1,18 +1,20 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   Pressable,
-  Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import * as Animatable from "react-native-animatable";
 import { supabase } from "../../../lib/supabase";
 import { UserProfileService } from "../../../lib/userProfile";
 import { useAuth } from "../../context/AuthContext";
+import { BackArrow } from "../../../components/BackArrow";
+import { Heading1, BodyMedium, CaptionMedium } from "../../../components/Typography";
 
 export default function ConfirmationCodeScreen() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -29,16 +31,12 @@ export default function ConfirmationCodeScreen() {
   }>();
   const { verifyOtp, signInWithEmail } = useAuth();
 
-  console.log("ConfirmationCodeScreen rendered with email:", email);
-  console.log("ConfirmationCodeScreen rendered with phone:", phone);
-  console.log("Should send OTP:", shouldSendOtp);
-
   if (!email && !phone) {
     return (
       <View className="flex-1 justify-center items-center bg-[#111]">
-        <Text className="text-red-500">
+        <BodyMedium className="text-red-500">
           No email or phone number provided. Please go back and try again.
-        </Text>
+        </BodyMedium>
       </View>
     );
   }
@@ -47,7 +45,6 @@ export default function ConfirmationCodeScreen() {
   useEffect(() => {
     const sendOtpOnLoad = async () => {
       if (shouldSendOtp === "true" && !otpSent && email) {
-        console.log("Sending OTP to:", email);
         setSending(true);
         setOtpSent(true);
         try {
@@ -56,31 +53,12 @@ export default function ConfirmationCodeScreen() {
           setSending(false);
           if (error) {
             console.error("Failed to send OTP:", error);
-            // Create detailed error message for debugging
-            const errorDetails = JSON.stringify({
-              message: error.message,
-              name: error.name,
-              status: error.status,
-              fullError: error,
-            }, null, 2);
-            console.error("Full error details:", errorDetails);
-            setError(
-              error.message || "Failed to send OTP. Check console for details."
-            );
-          } else {
-            console.log("OTP sent successfully");
+            setError(error.message || "Failed to send OTP.");
           }
         } catch (err: any) {
           setSending(false);
-          const errorDetails = JSON.stringify({
-            message: err?.message,
-            name: err?.name,
-            stack: err?.stack,
-          }, null, 2);
-          console.error("Exception in sendOtpOnLoad:", errorDetails);
-          setError(
-            `Error: ${err?.message || "Unknown error"}. Check console for full details.`
-          );
+          console.error("Exception in sendOtpOnLoad:", err);
+          setError(`Error: ${err?.message || "Unknown error"}`);
         }
       }
     };
@@ -92,11 +70,14 @@ export default function ConfirmationCodeScreen() {
       const newCode = [...code];
       newCode[idx] = text;
       setCode(newCode);
+      setError(null); // Clear error when user starts typing
 
       if (text && idx < 5) {
+        // Move to next field
         inputs.current[idx + 1]?.focus();
         setActiveIdx(idx + 1);
       }
+      // Auto-submit will be handled by useEffect when all 6 digits are entered
     }
   };
 
@@ -104,6 +85,10 @@ export default function ConfirmationCodeScreen() {
     if (e.nativeEvent.key === "Backspace" && !code[idx] && idx > 0) {
       inputs.current[idx - 1]?.focus();
       setActiveIdx(idx - 1);
+      // Clear previous field when backspacing
+      const newCode = [...code];
+      newCode[idx - 1] = "";
+      setCode(newCode);
     }
   };
 
@@ -113,25 +98,16 @@ export default function ConfirmationCodeScreen() {
         await UserProfileService.getUserProfile(userId);
 
       if (error) {
-        console.log(
-          "Error fetching profile, continuing with account setup:",
-          error
-        );
         router.replace("/name");
         return;
       }
 
-      // Check if user has completed their profile setup
       const hasCompleteName = profile?.first_name && profile?.last_name;
       const hasUsername = profile?.username;
 
       if (hasCompleteName && hasUsername) {
-        console.log("User has complete profile, redirecting to main app");
-        // User has a complete profile, go to main app
         router.replace("/(app)");
       } else {
-        console.log("User profile incomplete, continuing with account setup");
-        // User needs to complete their profile
         if (!hasCompleteName) {
           router.replace("/name");
         } else if (!hasUsername) {
@@ -142,15 +118,13 @@ export default function ConfirmationCodeScreen() {
       }
     } catch (error) {
       console.error("Error checking user profile:", error);
-      // On error, default to account setup
       router.replace("/name");
     }
   };
 
-  const handleVerify = async () => {
-    const otp = code.join("");
-    if (otp.length !== 6) {
-      setError("Please enter all 6 digits");
+  const handleVerify = async (otp?: string) => {
+    const codeToVerify = otp || code.join("");
+    if (codeToVerify.length !== 6) {
       return;
     }
 
@@ -165,12 +139,12 @@ export default function ConfirmationCodeScreen() {
         error,
       } = await supabase.auth.verifyOtp({
         phone: phone,
-        token: otp,
+        token: codeToVerify,
         type: "sms",
       });
       verificationError = error;
     } else if (email) {
-      const result = await verifyOtp(email, otp);
+      const result = await verifyOtp(email, codeToVerify);
       verificationError = result?.error;
     }
 
@@ -193,7 +167,6 @@ export default function ConfirmationCodeScreen() {
           if (session?.user?.id) {
             await checkUserProfileAndRedirect(session.user.id);
           } else {
-            console.log("No user session found, redirecting to account setup");
             router.replace("/name");
           }
         } catch (error) {
@@ -230,150 +203,117 @@ export default function ConfirmationCodeScreen() {
     }
   };
 
-  const isCodeComplete = code.every((digit) => digit.length === 1);
+  // Auto-submit when code is complete
+  useEffect(() => {
+    const fullCode = code.join("");
+    if (fullCode.length === 6 && !verifying && !sending && !error) {
+      handleVerify(fullCode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
+
+  // Handle OTP autofill
+  useEffect(() => {
+    // This will be handled by the hidden TextInput
+  }, []);
+
+  const displayEmail = email || phone || "";
 
   return (
-    <Animatable.View
-      animation="fadeIn"
-      duration={500}
-      className="flex-1 bg-[#111] px-6 pt-20"
-    >
-      {/* Back button */}
-      <Pressable
-        className="absolute top-12 left-5 pt-10 active:bg-neutral-800"
-        onPress={() => router.back()}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <Animatable.View
+        animation="fadeIn"
+        duration={500}
+        className="flex-1 bg-[#111] p-5 pt-20"
       >
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </Pressable>
-
-      <View className="flex-1 justify-start pt-16">
-        <Text className="text-white text-2xl font-bold mb-2">
-          Enter the 6-digit confirmation code
-        </Text>
-        <Text className="text-gray-400 text-sm mb-8">
-          To confirm your account, enter the 6-digit code we sent to{" "}
-          {email || phone}
-        </Text>
-
-        {/* Hidden TextInput for OTP autofill */}
-        <TextInput
-          style={{ position: "absolute", left: -9999 }}
-          textContentType="oneTimeCode"
-          autoComplete="sms-otp"
-          onChangeText={(text) => {
-            if (text.length === 6) {
-              const digits = text.split("");
-              setCode(digits);
-              // Focus the last input to show completion
-              inputs.current[5]?.focus();
-            }
-          }}
-          keyboardType="number-pad"
-          maxLength={6}
+        <BackArrow
+          className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
+          onPress={() => router.back()}
         />
 
-        {sending && (
-          <Animatable.View
-            animation="fadeIn"
-            duration={500}
-            className="flex-row items-center mb-4"
-          >
-            <ActivityIndicator color="#fff" size="small" />
-            <Text className="text-white ml-2">Sending OTP...</Text>
-          </Animatable.View>
-        )}
-
-        <View className="flex-row justify-between mt-4">
-          {code.map((digit, idx) => (
-            <TextInput
-              key={idx}
-              ref={(ref) => {
-                inputs.current[idx] = ref;
-              }}
-              className={`
-                w-12 h-20 rounded-xl text-white text-2xl font-bold text-center bg-[#222]
-                border-2
-                ${activeIdx === idx || digit ? "border-white" : "border-transparent"}
-              `}
-              keyboardType="number-pad"
-              maxLength={1}
-              value={digit}
-              onChangeText={(text) => handleChange(text, idx)}
-              onKeyPress={(e) => handleKeyPress(e, idx)}
-              onFocus={() => setActiveIdx(idx)}
-              selectionColor="#fff"
-              autoFocus={idx === 0}
-              editable={!verifying && !sending}
-            />
-          ))}
-        </View>
-
-        {error && (
-          <View className="mt-4">
-            <Text className="text-red-500 mb-2">{error}</Text>
-            <Pressable
-              onPress={() => {
-                // Log full error details to console for easy copying
-                console.log("=== FULL ERROR DETAILS FOR DEBUGGING ===");
-                console.log("Error message:", error);
-                console.log("Email:", email);
-                console.log("Supabase URL:", process.env.EXPO_PUBLIC_SUPABASE_URL);
-                Alert.alert(
-                  "Error Details",
-                  "Full error details have been logged to the console. Please check your terminal/console and copy the error logs starting from '=== FULL ERROR DETAILS FOR DEBUGGING ==='"
-                );
-              }}
-              className="mt-2"
-            >
-              <Text className="text-blue-400 text-xs underline">
-                Tap to log full error details to console
-              </Text>
-            </Pressable>
+        <View className="flex-1 justify-start pt-10">
+          {/* Title and Description - gap-3 (12px) */}
+          <View className="mb-8 gap-3">
+            <Heading1 className="text-white">
+              Enter the confirmation code
+            </Heading1>
+            <BodyMedium className="text-[#7f7f7f]">
+              To confirm your account, enter the 6-digit code we sent to {displayEmail}
+            </BodyMedium>
           </View>
-        )}
 
-        {/* Verify button */}
-        <Pressable
-          className={`
-            mt-8 py-4 rounded-xl active:bg-neutral-800
-            ${
-              isCodeComplete && !verifying && !sending
-                ? "bg-white"
-                : "bg-gray-600"
-            }
-          `}
-          onPress={handleVerify}
-          disabled={!isCodeComplete || verifying || sending}
-        >
-          {verifying ? (
-            <ActivityIndicator color="#111" />
-          ) : (
-            <Text
-              className={`
-              text-center font-bold text-lg
-              ${isCodeComplete ? "text-black" : "text-gray-400"}
-            `}
-            >
-              Verify Code
-            </Text>
-          )}
-        </Pressable>
+          {/* Hidden TextInput for OTP autofill */}
+          <TextInput
+            style={{ position: "absolute", left: -9999 }}
+            textContentType="oneTimeCode"
+            autoComplete="sms-otp"
+            onChangeText={(text) => {
+              if (text.length === 6 && /^[0-9]{6}$/.test(text)) {
+                const digits = text.split("");
+                setCode(digits);
+                setActiveIdx(5);
+                inputs.current[5]?.focus();
+                // Auto-submit will be triggered by useEffect
+              }
+            }}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
 
-        {/* Resend code button */}
-        <Pressable
-          className="mt-4 py-2 active:bg-neutral-800"
-          onPress={handleResendCode}
-          disabled={sending || verifying}
-        >
-          {sending ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text className="text-gray-400 text-center">
-              Didn't receive the code? Resend
-            </Text>
-          )}
-        </Pressable>
-      </View>
-    </Animatable.View>
+          {/* Code Input Fields - gap-3 (12px) between boxes */}
+          <View className="mb-6">
+            <View className="flex-row gap-3 justify-center">
+              {code.map((digit, idx) => (
+                <TextInput
+                  key={idx}
+                  ref={(ref) => {
+                    inputs.current[idx] = ref;
+                  }}
+                  className={`
+                    flex-1 h-[51px] rounded-[10px] bg-[#373737] border text-center
+                    ${activeIdx === idx ? "border-white" : "border-[rgba(51,51,51,0.1)]"}
+                  `}
+                  style={{
+                    fontSize: 20,
+                    color: "#ffffff",
+                    fontFamily: "System",
+                    fontWeight: "400",
+                  }}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  value={digit}
+                  onChangeText={(text) => handleChange(text, idx)}
+                  onKeyPress={(e) => handleKeyPress(e, idx)}
+                  onFocus={() => setActiveIdx(idx)}
+                  selectionColor="#fff"
+                  autoFocus={idx === 0}
+                  editable={!verifying && !sending}
+                />
+              ))}
+            </View>
+
+            {/* Error message */}
+            {error && (
+              <BodyMedium className="text-[#b91030] mt-3 text-center">
+                {error}
+              </BodyMedium>
+            )}
+          </View>
+
+          {/* Resend code link - gap-6 (24px) from inputs */}
+          <View className="items-center">
+            {sending ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Pressable onPress={handleResendCode} disabled={verifying}>
+                <CaptionMedium className="text-white underline">
+                  Didn't receive the code? Resend
+                </CaptionMedium>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </Animatable.View>
+    </TouchableWithoutFeedback>
   );
 }

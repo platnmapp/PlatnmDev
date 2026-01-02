@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import "nativewind";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Keyboard,
   Pressable,
   Text,
@@ -12,17 +11,19 @@ import {
   View,
 } from "react-native";
 import * as Animatable from "react-native-animatable";
+import { Button } from "../../../components/Button";
+import { TextField } from "../../../components/TextField";
+import { BackArrow } from "../../../components/BackArrow";
+import { Heading1, BodyMedium } from "../../../components/Typography";
 import { useAuth } from "../../context/AuthContext";
 
 export default function EmailSignUp() {
   const [email, setEmail] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signInWithEmail, isLoading } = useAuth();
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
-    setIsFocused(false);
   };
 
   const handleContinue = async () => {
@@ -55,7 +56,7 @@ export default function EmailSignUp() {
         duration={500}
         className="flex-1 bg-[#111] p-5 pt-20"
       >
-        <Pressable
+        <BackArrow
           className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
           onPress={() => {
             if (router.canGoBack()) {
@@ -64,64 +65,47 @@ export default function EmailSignUp() {
               router.replace("/(auth)/intro");
             }
           }}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </Pressable>
+        />
         <View className="flex-1 justify-start pt-10">
-          <Text className="text-white text-2xl font-bold mb-2">
+          <Heading1 className="text-white mb-2">
             What&apos;s your email?
-          </Text>
-          <Text className="text-gray-400 text-lg mb-6">
+          </Heading1>
+          <BodyMedium className="text-[#7f7f7f] mb-6">
             Enter the email address where you can be contacted
-          </Text>
+          </BodyMedium>
 
-          <TextInput
-            style={{
-              lineHeight: 20,
-            }}
-            className={
-              `bg-[#222] text-white rounded-lg px-4 py-4 mb-5 border text-lg` +
-              (isFocused ? " border-white" : " border-transparent")
-            }
+          <TextField
             placeholder="Email address"
-            placeholderTextColor="#b0b0b0"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             textAlignVertical="center"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            showClearButton={!!email}
+            onClear={() => setEmail("")}
+            className="mb-5"
           />
 
           {error && <Text className="text-red-500 mb-2">{error}</Text>}
 
-          <Pressable
+          <Button
+            variant="primary"
             onPress={handleContinue}
-            className={`rounded-full py-5 items-center mb-4 active:bg-neutral-800 ${isButtonActive ? "bg-white" : "bg-gray-600"}`}
             disabled={!isButtonActive}
+            loading={isLoading}
+            fullWidth
+            className="mb-4"
           >
-            {isLoading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <Animatable.Text
-                animation="fadeIn"
-                duration={500}
-                className={` text-lg ${isButtonActive ? "text-black" : "text-gray-400"}`}
-              >
-                Continue
-              </Animatable.Text>
-            )}
-          </Pressable>
+            Continue
+          </Button>
 
-          <Pressable
-            className="border border-white rounded-full py-5 items-center active:bg-neutral-800 py-3"
+          <Button
+            variant="secondary"
             onPress={() => router.push("/phone-signup")}
+            fullWidth
           >
-            <Text className="text-white text-lg">
-              Sign up with mobile number
-            </Text>
-          </Pressable>
+            Sign up with mobile number
+          </Button>
         </View>
       </Animatable.View>
     </TouchableWithoutFeedback>

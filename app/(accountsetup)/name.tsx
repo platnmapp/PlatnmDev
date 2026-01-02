@@ -1,32 +1,28 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import "nativewind";
 import React, { useState } from "react";
 import {
   Alert,
   Keyboard,
-  Pressable,
-  Text,
-  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import * as Animatable from "react-native-animatable";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { BackArrow } from "../../components/BackArrow";
+import { Heading1, BodyMedium } from "../../components/Typography";
+import { TextField } from "../../components/TextField";
+import { Button } from "../../components/Button";
 
 export default function NameSetup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [isFocusedFirstName, setIsFocusedFirstName] = useState(false);
-  const [isFocusedLastName, setIsFocusedLastName] = useState(false);
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
-    setIsFocusedFirstName(false);
-    setIsFocusedLastName(false);
   };
 
   const handleContinue = async () => {
@@ -55,7 +51,7 @@ export default function NameSetup() {
 
       console.log("Name saved successfully:", firstName, lastName);
       dismissKeyboard();
-      router.push("/username");
+      router.push("/birthday");
     } catch (error) {
       console.error("Error saving name:", error);
       Alert.alert("Error", "Something went wrong. Please try again.");
@@ -73,60 +69,55 @@ export default function NameSetup() {
         duration={500}
         className="flex-1 bg-[#111] p-5 pt-20"
       >
-        <Pressable
-          className="absolute top-12 left-5 pt-10 active:bg-neutral-800"
+        <BackArrow
+          className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
           onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </Pressable>
-        <View className="flex-1 justify-start pt-16">
-          <Text className="text-white text-2xl font-bold mb-2">
-            What's your name?
-          </Text>
-          <Text className="text-gray-400 text-sm mb-6">
-            Enter your first and last name to set up your profile
-          </Text>
+        />
 
-          <TextInput
-            className={
-              `bg-[#222] text-white rounded-lg px-4 py-3  mb-5 border ` +
-              (isFocusedFirstName ? "border-white" : "border-transparent")
-            }
-            placeholder="First name"
-            placeholderTextColor="#b0b0b0"
-            value={firstName}
-            onChangeText={setFirstName}
-            autoCapitalize="words"
-            onFocus={() => setIsFocusedFirstName(true)}
-            onBlur={() => setIsFocusedFirstName(false)}
-            editable={!saving}
-          />
-          <TextInput
-            className={
-              `bg-[#222] text-white rounded-lg px-4 py-3  mb-5 border ` +
-              (isFocusedLastName ? "border-white" : "border-transparent")
-            }
-            placeholder="Last name"
-            placeholderTextColor="#b0b0b0"
-            value={lastName}
-            onChangeText={setLastName}
-            autoCapitalize="words"
-            onFocus={() => setIsFocusedLastName(true)}
-            onBlur={() => setIsFocusedLastName(false)}
-            editable={!saving}
-          />
+        <View className="flex-1 justify-start pt-10">
+          {/* Title and Description - gap-3 (12px) */}
+          <View className="mb-8 gap-3">
+            <Heading1 className="text-white">
+              What&apos;s your name?
+            </Heading1>
+            <BodyMedium className="text-[#7f7f7f]">
+              So your friends can see who you are
+            </BodyMedium>
+          </View>
 
-          <Pressable
+          {/* Input Fields - gap-3 (12px) between fields */}
+          <View className="mb-6 gap-3">
+            <TextField
+              placeholder="First Name"
+              value={firstName}
+              onChangeText={setFirstName}
+              autoCapitalize="words"
+              textAlignVertical="center"
+              showClearButton={!!firstName}
+              onClear={() => setFirstName("")}
+            />
+
+            <TextField
+              placeholder="Last Name"
+              value={lastName}
+              onChangeText={setLastName}
+              autoCapitalize="words"
+              textAlignVertical="center"
+              showClearButton={!!lastName}
+              onClear={() => setLastName("")}
+            />
+          </View>
+
+          {/* Continue Button */}
+          <Button
+            variant="primary"
             onPress={handleContinue}
-            className={`rounded-full py-3 items-center mb-4 active:bg-neutral-800 ${isButtonActive ? "bg-white" : "bg-gray-600"}`}
             disabled={!isButtonActive}
+            loading={saving}
+            fullWidth
           >
-            <Text
-              className={` font-medium ${isButtonActive ? "text-black" : "text-gray-400"}`}
-            >
-              {saving ? "Saving..." : "Continue"}
-            </Text>
-          </Pressable>
+            Continue
+          </Button>
         </View>
       </Animatable.View>
     </TouchableWithoutFeedback>

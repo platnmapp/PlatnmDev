@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import * as Animatable from "react-native-animatable";
+import { BodyMedium } from "../../../components/Typography";
 import { supabase } from "../../../lib/supabase";
 
 export default function PhoneSignUp() {
@@ -90,9 +91,9 @@ export default function PhoneSignUp() {
           <Text className="text-white text-2xl font-bold mb-2">
             What&apos;s your phone number?
           </Text>
-          <Text className="text-gray-400 text-lg mb-6">
+          <BodyMedium className="text-[#7f7f7f] mb-6">
             Enter your 10-digit US phone number to continue
-          </Text>
+          </BodyMedium>
 
           <TextInput
             className={

@@ -1,37 +1,33 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import "nativewind";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Keyboard,
   Pressable,
-  Text,
-  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import * as Animatable from "react-native-animatable";
+import { Heading1, BodyMedium, CaptionFineLine } from "../../components/Typography";
+import { Button } from "../../components/Button";
+import { TextField } from "../../components/TextField";
+import { BackArrow } from "../../components/BackArrow";
 import { useAuth } from "../context/AuthContext";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signInWithPassword, isLoading } = useAuth();
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
-    setIsEmailFocused(false);
-    setIsPasswordFocused(false);
   };
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      setError("Please enter both email and password");
+      // Don't show error for missing fields, just disable button
       return;
     }
 
@@ -39,7 +35,7 @@ export default function SignIn() {
     const result = await signInWithPassword(email, password);
 
     if (result?.error) {
-      setError(result.error.message || "Invalid email or password. Please try again.");
+      setError("Incorrect password");
     }
     // If successful, the auth state change will handle navigation
   };
@@ -53,7 +49,7 @@ export default function SignIn() {
         duration={500}
         className="flex-1 bg-[#111] p-5 pt-20"
       >
-        <Pressable
+        <BackArrow
           className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
           onPress={() => {
             if (router.canGoBack()) {
@@ -62,117 +58,87 @@ export default function SignIn() {
               router.replace("/(auth)/intro");
             }
           }}
-        >
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </Pressable>
-
+        />
         <View className="flex-1 justify-start pt-10">
-          <Text className="text-white text-2xl font-bold mb-2">
-            Sign In
-          </Text>
-          <Text className="text-gray-400 text-lg mb-6">
-            Enter your email and password to continue
-          </Text>
+          <Heading1 className="text-white mb-2">
+            Welcome back
+          </Heading1>
+          <BodyMedium className="text-[#7f7f7f] mb-6">
+            Sign in with your username and email
+          </BodyMedium>
 
           {/* Email Input */}
-          <TextInput
-            style={{
-              lineHeight: 20,
-            }}
-            className={
-              `bg-[#222] text-white rounded-lg px-4 py-4 mb-4 border text-lg` +
-              (isEmailFocused ? " border-white" : " border-transparent")
-            }
-            placeholder="Email address"
-            placeholderTextColor="#b0b0b0"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              setError(null);
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            textContentType="emailAddress"
-            textAlignVertical="center"
-            onFocus={() => setIsEmailFocused(true)}
-            onBlur={() => setIsEmailFocused(false)}
-          />
+          <View className="mb-3">
+            <TextField
+              placeholder="Email address"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                setError(null);
+              }}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
+              textAlignVertical="center"
+              showClearButton={!!email}
+              onClear={() => {
+                setEmail("");
+                setError(null);
+              }}
+            />
+          </View>
 
           {/* Password Input */}
-          <View className="relative mb-5">
-            <TextInput
-              style={{
-                lineHeight: 20,
-              }}
-              className={
-                `bg-[#222] text-white rounded-lg px-4 py-4 pr-12 border text-lg` +
-                (isPasswordFocused ? " border-white" : " border-transparent")
-              }
+          <View className="mb-5">
+            <TextField
               placeholder="Password"
-              placeholderTextColor="#b0b0b0"
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
                 setError(null);
               }}
-              secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoComplete="password"
               textContentType="password"
               textAlignVertical="center"
-              onFocus={() => setIsPasswordFocused(true)}
-              onBlur={() => setIsPasswordFocused(false)}
+              showPasswordToggle={true}
+              passwordVisible={showPassword}
+              onPasswordToggle={() => setShowPassword(!showPassword)}
+              state={error ? "error" : undefined}
             />
-            <Pressable
-              className="absolute right-4 top-4"
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons
-                name={showPassword ? "eye-off" : "eye"}
-                size={24}
-                color="#b0b0b0"
-              />
-            </Pressable>
+            
+            {/* Error message and Forgot password link */}
+            <View className="flex-row justify-between items-center mt-2">
+              {error && (
+                <CaptionFineLine className="text-[#b91030]">
+                  {error}
+                </CaptionFineLine>
+              )}
+              {!error && <View />}
+              <Pressable
+                onPress={() => {
+                  // TODO: Implement forgot password flow
+                  console.log("Forgot password");
+                }}
+              >
+                <CaptionFineLine className="text-white underline">
+                  Forget your password?
+                </CaptionFineLine>
+              </Pressable>
+            </View>
           </View>
 
-          {error && (
-            <Text className="text-red-500 mb-4 text-base">{error}</Text>
-          )}
-
-          <Pressable
+          <Button
+            variant="primary"
             onPress={handleSignIn}
-            className={`rounded-full py-5 items-center mb-4 active:opacity-90 ${
-              isButtonActive ? "bg-white" : "bg-gray-600"
-            }`}
             disabled={!isButtonActive}
+            loading={isLoading}
+            fullWidth
+            className="mb-4"
           >
-            {isLoading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <Animatable.Text
-                animation="fadeIn"
-                duration={500}
-                className={`text-lg ${
-                  isButtonActive ? "text-black" : "text-gray-400"
-                }`}
-              >
-                Sign In
-              </Animatable.Text>
-            )}
-          </Pressable>
-
-          <Pressable
-            className="py-3 active:opacity-70"
-            onPress={() => {
-              // TODO: Implement forgot password flow
-              console.log("Forgot password");
-            }}
-          >
-            <Text className="text-gray-400 text-center text-base">
-              Forgot password?
-            </Text>
-          </Pressable>
+            Sign In
+          </Button>
         </View>
       </Animatable.View>
     </TouchableWithoutFeedback>

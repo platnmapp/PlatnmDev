@@ -1,51 +1,101 @@
 import { useFonts } from "expo-font";
 import { router } from "expo-router";
 import "nativewind";
-import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Dimensions, Image, Pressable, Text, View } from "react-native";
-import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
+import React, { useEffect, useState } from "react";
+import { Dimensions, Image, View } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+  interpolateColor,
+  Easing,
+} from "react-native-reanimated";
+import { BrandHeader, Heading2, CaptionMedium } from "../../components/Typography";
+import { Button } from "../../components/Button";
 import { useAuth } from "../context/AuthContext";
 
-// SVG files will be loaded dynamically
-// For now, using Image component as fallback until SVG files are added
-
 const windowWidth = Dimensions.get("window").width;
+const windowHeight = Dimensions.get("window").height;
 
-// Intro Screen 1 - Light theme
-function IntroOne() {
-  const [fontsLoaded] = useFonts({
-    "Benzin-ExtraBold": require("../../assets/fonts/Benzin-ExtraBold.ttf"),
-  });
+// Calculate center position for logo (screen height / 2 - logo height / 2)
+const CENTER_LOGO_TOP = windowHeight / 2 - 137 / 2 - 60; // Adjust for text height
+const UPPER_LOGO_TOP = 129; // Position after animation
 
-  if (!fontsLoaded) {
-    return null;
-  }
-
-  return (
-    <View className="flex-1 bg-white justify-center items-center px-6">
-      <Image
-        source={require("../../assets/images/dark-logo.png")}
-        style={{ width: 128, height: 137, marginBottom: 24 }}
-        resizeMode="contain"
-      />
-      <Text 
-        className="text-black mb-2" 
-        style={{ fontFamily: 'Benzin-ExtraBold', fontSize: 48 }}
-      >
-        platnm
-      </Text>
-      <Text className="text-gray-600 text-lg">Put People On</Text>
-    </View>
-  );
-}
-
-// Intro Screen 2 - Dark theme with sign up options (Figma design)
-function IntroTwo() {
+export default function IntroScreen() {
+  // All hooks called unconditionally at the top
   const { signInWithApple, isLoading } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [fontsLoaded] = useFonts({
     "Benzin-ExtraBold": require("../../assets/fonts/Benzin-ExtraBold.ttf"),
   });
+  const animationProgress = useSharedValue(0);
+
+  // Background color animation: white to dark
+  const backgroundAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: interpolateColor(
+        animationProgress.value,
+        [0, 1],
+        ["#ffffff", "#0e0e0e"]
+      ),
+    };
+  });
+
+  // Logo position animation: center to top
+  const logoContainerAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      top: interpolate(
+        animationProgress.value,
+        [0, 1],
+        [CENTER_LOGO_TOP, UPPER_LOGO_TOP]
+      ),
+    };
+  });
+
+  // "platnm" text color animation: black to white
+  const platnmTextAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      color: interpolateColor(
+        animationProgress.value,
+        [0, 1],
+        ["#191919", "#ffffff"]
+      ),
+    };
+  });
+
+  // "Put People On" text color animation: #545454 to #9f9f9f
+  const taglineTextAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      color: interpolateColor(
+        animationProgress.value,
+        [0, 1],
+        ["#545454", "#9f9f9f"]
+      ),
+    };
+  });
+
+  // Buttons container animation: slide up from bottom
+  const buttonsContainerAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(animationProgress.value, [0, 1], [0, 1]);
+    const translateY = interpolate(animationProgress.value, [0, 1], [100, 0]);
+    return {
+      opacity,
+      transform: [{ translateY }],
+    };
+  });
+
+  // Start animation after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      animationProgress.value = withTiming(1, {
+        duration: 800,
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Gentle easing
+      });
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleAppleSignIn = async () => {
     setIsSigningIn(true);
@@ -53,7 +103,6 @@ function IntroTwo() {
       const result = await signInWithApple();
       if (result?.error) {
         console.error("Apple sign in error:", result.error);
-        // You can show an alert here if needed
       }
     } catch (error) {
       console.error("Error during Apple sign in:", error);
@@ -62,14 +111,18 @@ function IntroTwo() {
     }
   };
 
+  // Show loading state if fonts aren't loaded yet
   if (!fontsLoaded) {
-    return null;
+    return <View className="flex-1 bg-white" />;
   }
 
   return (
-    <View className="flex-1 bg-[#0e0e0e] relative">
-      {/* Logo Section - centered horizontally at top */}
-      <View className="absolute top-[129px] left-0 right-0 items-center">
+    <Animated.View className="flex-1 relative" style={backgroundAnimatedStyle}>
+      {/* Logo Section - animated position */}
+      <Animated.View
+        className="absolute left-0 right-0 items-center"
+        style={logoContainerAnimatedStyle}
+      >
         <View className="items-center mb-1">
           <Image
             source={require("../../assets/images/dark-logo.png")}
@@ -77,140 +130,100 @@ function IntroTwo() {
             resizeMode="contain"
           />
         </View>
-        <Text 
-          className="text-white mb-0"
-          style={{ fontFamily: 'Benzin-ExtraBold', fontSize: 48, lineHeight: 48 * 1.2 }}
+        <Animated.Text
+          style={[
+            {
+              fontFamily: "Benzin-ExtraBold",
+              fontSize: 48,
+              lineHeight: 48,
+              marginBottom: 2,
+            },
+            platnmTextAnimatedStyle,
+          ]}
         >
           platnm
-        </Text>
-        <Text className="text-[#b4b4b4] text-[20px] text-center">
-          Put People On
-        </Text>
-      </View>
-
-      {/* Sign up CTAs - positioned at bottom */}
-      <View className="absolute left-0 top-[480px] w-full px-4">
-        {/* Sign Up Button - 370px width as per Figma */}
-        <Pressable
-          className="bg-white rounded-[30px] py-4 mb-6 active:opacity-90 self-center"
-          style={{ width: 370 }}
-          onPress={() => router.push("/(auth)/(register)/signup")}
+        </Animated.Text>
+        <Animated.Text
+          style={[
+            {
+              fontFamily: "System",
+              fontSize: 20,
+              lineHeight: 20,
+              fontWeight: "400",
+              textAlign: "center",
+            },
+            taglineTextAnimatedStyle,
+          ]}
         >
-          <Text className="text-black text-center text-base font-medium tracking-[-0.48px]">
-            Sign Up
-          </Text>
-        </Pressable>
+          Put People On
+        </Animated.Text>
+      </Animated.View>
+
+      {/* Buttons Container - slides up from bottom */}
+      <Animated.View
+        className="absolute left-0 w-full px-4"
+        style={[
+          buttonsContainerAnimatedStyle,
+          { top: 480 }, // Final position as per Figma
+        ]}
+      >
+        <Button
+          variant="primary"
+          onPress={() => router.push("/(auth)/(register)/signup")}
+          className="mb-6 self-center"
+        >
+          Sign Up
+        </Button>
 
         {/* OR Divider */}
         <View className="flex-row items-center mb-6">
           <View className="flex-1 h-px bg-[#dddddd]" />
-          <Text className="text-[#bbbbbb] text-[13px] mx-3">OR</Text>
+          <CaptionMedium className="text-[#bbbbbb] mx-3">OR</CaptionMedium>
           <View className="flex-1 h-px bg-[#dddddd]" />
         </View>
 
-        {/* Continue with Google Button */}
-        <Pressable
-          className="border border-[#c4c4c4] rounded-[30px] py-4 mb-3 active:opacity-70 flex-row items-center justify-center"
+        <Button
+          variant="secondary"
+          iconImage={require("../../assets/images/google-logo.png")}
           onPress={() => {
-            // TODO: Implement Google sign in
             console.log("Google sign in");
           }}
+          className="mb-3"
+          fullWidth
         >
-          {/* Google Logo - 19px as per Figma */}
-          <View style={{ marginRight: 15 }}>
-            <Image
-              source={require("../../assets/images/google-logo.png")}
-              style={{ width: 19, height: 19 }}
-              resizeMode="contain"
-            />
-          </View>
-          <Text className="text-white text-base text-center">
-            Continue with Google
-          </Text>
-        </Pressable>
+          Continue with Google
+        </Button>
 
-        {/* Continue with Apple Button */}
-        <Pressable
-          className="border border-[#c4c4c4] rounded-[30px] py-4 mb-6 active:opacity-70 flex-row items-center justify-center"
-          onPress={handleAppleSignIn}
-          disabled={isSigningIn || isLoading}
-        >
-          {/* Apple Logo - 19px as per Figma */}
-          <View style={{ marginRight: 19 }}>
-            {isSigningIn || isLoading ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Image
-                source={require("../../assets/images/apple-logo.png")}
-                style={{ width: 19, height: 19 }}
-                resizeMode="contain"
-              />
-            )}
-          </View>
-          <Text className="text-white text-base text-center">
-            {isSigningIn || isLoading ? "Signing in..." : "Continue with Apple"}
-          </Text>
-        </Pressable>
-
-        {/* Log in Link */}
-        <Pressable
-          className="py-4 active:opacity-70"
-          onPress={() => router.push("/(auth)/signin")}
-        >
-          <Text className="text-white text-base text-center">Log in</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-export default function IntroScreen() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const carouselRef = useRef<ICarouselInstance>(null);
-
-  const carouselData = [
-    { key: "intro1", component: <IntroOne /> },
-    { key: "intro2", component: <IntroTwo /> },
-  ];
-
-  // Auto-advance from screen 1 to screen 2 after 2 seconds
-  useEffect(() => {
-    if (currentIndex === 0 && carouselRef.current) {
-      const timer = setTimeout(() => {
-        carouselRef.current?.next();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentIndex]);
-
-  return (
-    <View className="flex-1 bg-white">
-      <Carousel
-        ref={carouselRef}
-        loop={false}
-        width={windowWidth}
-        autoPlay={false}
-        data={carouselData}
-        onSnapToItem={(index) => setCurrentIndex(index)}
-        renderItem={({ item }) => (
-          <View className="flex-1">{item.component}</View>
+        {isSigningIn || isLoading ? (
+          <Button
+            variant="secondary"
+            loading={true}
+            disabled={true}
+            className="mb-6"
+            fullWidth
+          >
+            Signing in...
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            iconImage={require("../../assets/images/apple-logo.png")}
+            onPress={handleAppleSignIn}
+            className="mb-6"
+            fullWidth
+          >
+            Continue with Apple
+          </Button>
         )}
-      />
 
-      {/* Page indicators */}
-      <View className="absolute bottom-8 left-0 right-0 flex-row justify-center">
-        {carouselData.map((_, index) => (
-          <View
-            key={index}
-            className={`mx-1 ${
-              index === currentIndex
-                ? "w-6 h-2 bg-white rounded-full"
-                : "w-2 h-2 bg-gray-500 rounded-full"
-            }`}
-          />
-        ))}
-      </View>
-    </View>
+        <Button
+          variant="tertiary"
+          onPress={() => router.push("/(auth)/signin")}
+          fullWidth
+        >
+          Log in
+        </Button>
+      </Animated.View>
+    </Animated.View>
   );
 }
-

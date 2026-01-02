@@ -8,6 +8,7 @@ export interface UserProfile {
   last_name?: string;
   username?: string;
   avatar_url?: string;
+  birth_date?: string; // Date in YYYY-MM-DD format
   onboarding_completed: boolean;
 
   // Spotify data
