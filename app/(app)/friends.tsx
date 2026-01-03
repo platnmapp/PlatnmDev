@@ -3,28 +3,25 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
-  Image,
-  LayoutAnimation,
-  Platform,
+  Keyboard,
+  Linking,
   Pressable,
   ScrollView,
   Text,
-  TextInput,
-  UIManager,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import * as Animatable from "react-native-animatable";
 import SkeletonLoader from "../../components/SkeletonLoader";
+import { BackArrow } from "../../components/BackArrow";
+import { BodyMain, BodyMedium, Heading2 } from "../../components/Typography";
+import { SearchBar } from "../../components/SearchBar";
+import { FriendSelectionTile } from "../../components/FriendSelectionTile";
+import { Button } from "../../components/Button";
 import { ActivityService } from "../../lib/activityService";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 interface DatabaseUser {
   id: string;
   first_name?: string;
@@ -53,9 +50,9 @@ interface FriendRequest {
 export default function Friends() {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState<DatabaseUser[]>([]);
-  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [isFocused, setIsFocused] = useState(false);
+  const [sending, setSending] = useState(false);
   const { user: currentUser } = useAuth();
 
   useEffect(() => {
@@ -65,7 +62,7 @@ export default function Friends() {
   const fetchData = async () => {
     if (!currentUser) return;
     setLoading(true);
-    await Promise.all([fetchUsers(), fetchFriendRequests()]);
+    await fetchUsers();
     setLoading(false);
   };
 
@@ -189,36 +186,50 @@ export default function Friends() {
     }
   };
 
-  const handleSendFriendRequest = async (userId: string) => {
-    if (!currentUser) return;
+  const handleSendFriendRequests = async () => {
+    if (!currentUser || selectedUserIds.size === 0) return;
 
+    setSending(true);
     try {
-      const { error } = await supabase.from("friendships").insert({
+      // Send friend requests to all selected users
+      const requests = Array.from(selectedUserIds).map((friendId) => ({
         user_id: currentUser.id,
-        friend_id: userId,
-        status: "pending",
-      });
+        friend_id: friendId,
+        status: "pending" as const,
+      }));
+
+      const { error } = await supabase.from("friendships").insert(requests);
 
       if (error) {
-        console.error("Error sending friend request:", error);
-        Alert.alert("Error", "Failed to send friend request");
+        console.error("Error sending friend requests:", error);
+        Alert.alert("Error", "Failed to send friend requests. Please try again.");
         return;
       }
 
-      // Update UI to show request sent
+      // Record activities for each recipient
+      for (const friendId of selectedUserIds) {
+        await ActivityService.createFriendRequestActivity(currentUser.id, friendId);
+      }
+
+      // Update UI to show requests sent
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
-          user.id === userId ? { ...user, isAdded: true } : user
+          selectedUserIds.has(user.id) ? { ...user, isAdded: true } : user
         )
       );
 
-      // Record activity for the recipient
-      await ActivityService.createFriendRequestActivity(currentUser.id, userId);
+      // Clear selections
+      setSelectedUserIds(new Set());
 
-      Alert.alert("Success", "Friend request sent!");
+      Alert.alert("Success", "Friend requests sent!");
+      
+      // Refresh the user list
+      fetchUsers();
     } catch (error) {
-      console.error("Error sending friend request:", error);
-      Alert.alert("Error", "Failed to send friend request");
+      console.error("Error sending friend requests:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -281,8 +292,45 @@ export default function Friends() {
     }
   };
 
-  const handleInviteMoreFriends = () => {
-    console.log("Invite more friends");
+  const handleInviteMoreFriends = async () => {
+    try {
+      const url = 'sms:';
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Error", "Unable to open messages app");
+      }
+    } catch (error) {
+      console.error("Error opening SMS:", error);
+      Alert.alert("Error", "Unable to open messages app");
+    }
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (user?.isAdded) return; // Don't allow selection if already added
+    
+    setSelectedUserIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const getUserDisplayName = (user: DatabaseUser) => {
+    if (user.first_name || user.last_name) {
+      return `${user.first_name || ""} ${user.last_name || ""}`.trim();
+    }
+    return user.username || "User";
+  };
+
+  const getUserUsername = (user: DatabaseUser) => {
+    return user.username ? `@${user.username}` : "";
   };
 
   const getDisplayName = (
@@ -314,14 +362,10 @@ export default function Friends() {
 
   const filteredUsers = users.filter(
     (user) =>
-      getDisplayName(user).toLowerCase().includes(searchText.toLowerCase()) ||
+      getUserDisplayName(user).toLowerCase().includes(searchText.toLowerCase()) ||
       (user.username &&
         user.username.toLowerCase().includes(searchText.toLowerCase()))
   );
-
-  useEffect(() => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  }, [searchText]);
 
   const searchResults = searchText.trim() ? filteredUsers : [];
 
@@ -437,110 +481,86 @@ export default function Friends() {
   const renderLoadingState = () => <SkeletonLoader />;
 
   return (
-    <Animatable.View
-      animation="fadeIn"
-      duration={500}
-      className="flex-1 bg-black"
-    >
-      {/* Header */}
-      <View className="pt-1 pb-6 px-4">
-        <View className="flex-row items-center justify-center relative">
-          <Pressable
-            className="absolute left-0 active:bg-neutral-800"
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <Animatable.View
+        animation="fadeIn"
+        duration={500}
+        className="flex-1 bg-[#0E0E0E] p-5 pt-20"
+      >
+        {/* Header with Back Arrow and Centered Title on same line */}
+        <View className="absolute top-12 left-0 right-0 flex-row items-center justify-center z-10" style={{ height: 32 }}>
+          <BackArrow
+            className="absolute left-5 active:bg-neutral-800"
             onPress={() => router.back()}
-          >
-            <Ionicons name="chevron-back" size={24} color="white" />
-          </Pressable>
-          <Text className="text-white text-xl font-semibold">
+          />
+          <BodyMedium className="text-white text-center">
             Add your friends
-          </Text>
+          </BodyMedium>
         </View>
-      </View>
 
       {loading ? (
         renderLoadingState()
       ) : (
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Friend Requests Section */}
-          {friendRequests.length > 0 && (
-            <View className="px-4 mb-6">
-              <Text className="text-white text-lg font-semibold mb-4">
-                Friend Requests
-              </Text>
-              {friendRequests.map(renderFriendRequestItem)}
-            </View>
-          )}
-
+        <View className="flex-1 justify-start pt-10">
           {/* Search Bar */}
-          {users.length > 0 && (
-            <View className="px-4 mb-6">
-              <View
-                className={`flex-row items-center bg-neutral-700 rounded-full px-4 py-2 ${
-                  isFocused ? "border border-gray-600" : ""
-                }`}
-              >
-                <Ionicons name="search" size={20} color="#9CA3AF" />
-                <TextInput
-                  className="flex-1 text-white ml-3 py-3"
-                  placeholder="Search for Friends..."
-                  placeholderTextColor="#9CA3AF"
-                  value={searchText}
-                  onChangeText={setSearchText}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                />
-              </View>
-            </View>
-          )}
-
-          {/* Search Results Section */}
-          {searchText.trim() && (
-            <View className="px-4 mb-6">
-              <Text className="text-white text-2xl font-semibold mb-4">
-                Search Results
-              </Text>
-              {searchResults.length > 0 ? (
-                searchResults.map(renderUserItem)
-              ) : (
-                <View className="py-8 items-center">
-                  <Ionicons name="search-outline" size={48} color="#9CA3AF" />
-                  <Text className="text-gray-400 text-center mt-3">
-                    No users found matching "{searchText}"
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Suggested Contacts */}
-          <View className="px-4 flex-1">
-            {users.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <>
-                <Text className="text-white text-2xl font-semibold mb-4">
-                  Suggested Contacts
-                </Text>
-                {users.map((user, index) => renderUserItem(user, index))}
-
-                {/* Invite More Friends Button */}
-                <Pressable
-                  className="flex-row items-center justify-center py-4 mt-4 active:bg-neutral-800"
-                  onPress={handleInviteMoreFriends}
-                >
-                  <Text className="text-white text-xl mr-2">
-                    Invite more friends
-                  </Text>
-                  <Ionicons
-                    name="paper-plane-outline"
-                    size={20}
-                    color="white"
-                  />
-                </Pressable>
-              </>
-            )}
+          <View className="mb-6">
+            <SearchBar
+              placeholder="Search for Friends..."
+              value={searchText}
+              onChangeText={setSearchText}
+            />
           </View>
-        </ScrollView>
+
+          {/* Suggested Contacts List */}
+          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+            <View className="mb-4 px-1">
+              <Heading2 className="text-white">
+                Suggested Contacts
+              </Heading2>
+            </View>
+
+            <View className="gap-3">
+              {filteredUsers.map((user) => (
+                <FriendSelectionTile
+                  key={user.id}
+                  name={getUserDisplayName(user)}
+                  username={getUserUsername(user)}
+                  avatarUrl={user.avatar_url}
+                  isSelected={selectedUserIds.has(user.id) || user.isAdded}
+                  onPress={() => toggleUserSelection(user.id)}
+                />
+              ))}
+            </View>
+
+            {/* Invite More Friends */}
+            <Pressable
+              className="flex-row items-center justify-center py-4 mt-4 active:opacity-70"
+              onPress={handleInviteMoreFriends}
+            >
+              <BodyMedium className="text-white mr-2">
+                Invite more friends
+              </BodyMedium>
+              <Ionicons
+                name="paper-plane-outline"
+                size={20}
+                color="white"
+              />
+            </Pressable>
+          </ScrollView>
+
+          {/* Add Friend Button */}
+          <View className="pt-4 pb-4">
+            <Button
+              variant="primary"
+              onPress={handleSendFriendRequests}
+              disabled={selectedUserIds.size === 0 || sending}
+              loading={sending}
+              fullWidth
+            >
+              Add Friend{selectedUserIds.size > 1 ? "s" : ""}
+            </Button>
+          </View>
+        </View>
       )}
 
       {/* Bottom Navigation */}
@@ -568,5 +588,6 @@ export default function Friends() {
         </Pressable>
       </View>
     </Animatable.View>
+    </TouchableWithoutFeedback>
   );
 }

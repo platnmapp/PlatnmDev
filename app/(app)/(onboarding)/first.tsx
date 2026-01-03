@@ -1,18 +1,25 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, View } from "react-native";
+import { BackArrow } from "../../../components";
 
 export default function OnboardingFirst() {
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // If there's no previous route, navigate to the main app
+      router.replace("/(app)");
+    }
+  };
+
   return (
     <View className="flex-1 bg-[#111] p-5 pt-20">
       {/* Back button */}
-      <TouchableOpacity
-        className="absolute top-12 left-5 pt-10"
-        onPress={() => router.back()}
-      >
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </TouchableOpacity>
+      <BackArrow
+        className="absolute top-12 left-5 pt-1 active:bg-neutral-800"
+        onPress={handleBack}
+      />
 
       <View className="flex-1 justify-center pt-10">
         {/* Illustration */}

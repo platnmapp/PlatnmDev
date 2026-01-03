@@ -3,8 +3,11 @@ import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, Image, Pressable, Text, View } from "react-native";
 import * as Animatable from "react-native-animatable";
-import AddPersonIcon from "../../components/AddPersonIcon";
 import SkeletonLoader from "../../components/SkeletonLoader";
+import AddPersonIcon from "../../components/AddPersonIcon";
+import { BodyMain, BodyMedium, CaptionMain, Heading1, Heading2 } from "../../components/Typography";
+import { NotificationButton } from "../../components/NotificationButton";
+import { colors } from "../../lib/colors";
 import {
   ActivityGrouped,
   Activity as ActivityItem,
@@ -175,33 +178,29 @@ export default function Activity() {
     switch (activity.type) {
       case "song_liked":
         return (
-          <Text className="text-lg mt-1" numberOfLines={1} ellipsizeMode="tail">
-            <Text className="text-green-500">Liked</Text>
-            <Text className="text-white">
-              {" "}
-              your hit - {activity.song_title}
-            </Text>
-          </Text>
+          <BodyMain style={{ color: colors["grey-scale-300"] }} numberOfLines={1} ellipsizeMode="tail">
+            <Text style={{ color: "#027b1b", fontWeight: "500" }}>Liked</Text>
+            <Text style={{ color: colors["grey-scale-300"] }}> your hit - </Text>
+            <Text style={{ color: colors["grey-scale-0"], fontWeight: "500" }}>{activity.song_title}</Text>
+          </BodyMain>
         );
       case "song_disliked":
         return (
-          <Text className="text-lg mt-1" numberOfLines={1} ellipsizeMode="tail">
-            <Text className="text-red-500">Disliked</Text>
-            <Text className="text-white">
-              {" "}
-              your hit - {activity.song_title}
-            </Text>
-          </Text>
+          <BodyMain style={{ color: colors["grey-scale-300"] }} numberOfLines={1} ellipsizeMode="tail">
+            <Text style={{ color: "#b91030", fontWeight: "500" }}>Disliked</Text>
+            <Text style={{ color: colors["grey-scale-300"] }}> your hit - </Text>
+            <Text style={{ color: colors["grey-scale-0"], fontWeight: "500" }}>{activity.song_title}</Text>
+          </BodyMain>
         );
       default:
         return (
-          <Text
-            className={`text-lg mt-1 ${getActivityTextColor(activity)}`}
+          <BodyMain
+            style={{ color: colors["grey-scale-300"] }}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {getActivityText(activity)}
-          </Text>
+          </BodyMain>
         );
     }
   };
@@ -218,53 +217,69 @@ export default function Activity() {
         : ActivityService.getActorDisplayName(activity.actor);
     const timestamp = ActivityService.formatTimestamp(activity.created_at);
 
+    // Determine if this item should have a gradient background
+    const hasGradient = activity.type === "song_liked" || activity.type === "song_disliked";
+    const gradientColor = activity.type === "song_liked" 
+      ? "rgba(2, 123, 27, 0.05)" 
+      : activity.type === "song_disliked"
+      ? "rgba(185, 16, 48, 0.05)"
+      : "transparent";
+
     return (
       <Animatable.View
         animation="fadeInUp"
         duration={500}
         delay={index * 100}
         key={activity.id}
-        className="bg-neutral-900/30 p-4 rounded-lg"
+        style={{ 
+          backgroundColor: hasGradient ? gradientColor : "transparent",
+          paddingHorizontal: 16,
+          paddingVertical: 16,
+        }}
       >
-        <View className="flex-row items-center">
-          {/* User Avatar */}
-          <View className="w-12 h-12 rounded-full mr-3 bg-neutral-700 items-center justify-center">
-            {activity.actor.avatar_url ? (
-              <Image
-                source={{ uri: activity.actor.avatar_url }}
-                className="w-12 h-12 rounded-full"
-                defaultSource={require("../../assets/images/placeholder.png")}
-              />
-            ) : (
-              <Text className="text-white text-xl font-bold">
-                {actorName[0]?.toUpperCase() || "U"}
-              </Text>
-            )}
-          </View>
-
-          {/* Content */}
-          <View className="flex-1">
-            <View className="flex-row items-center flex-1">
-              <Text
-                className="text-white font-semibold mr-2 shrink"
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {actorName}
-              </Text>
-              <Text className="text-gray-500 text-xs">{timestamp}</Text>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1" style={{ gap: 12 }}>
+            {/* User Avatar */}
+            <View className="rounded-full overflow-hidden" style={{ width: 42, height: 42 }}>
+              {activity.actor.avatar_url ? (
+                <Image
+                  source={{ uri: activity.actor.avatar_url }}
+                  style={{ width: 42, height: 42 }}
+                  defaultSource={require("../../assets/images/placeholder.png")}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="w-full h-full bg-[#373737] items-center justify-center">
+                  <Text className="text-white" style={{ fontSize: 16, fontWeight: "600" }}>
+                    {actorName[0]?.toUpperCase() || "U"}
+                  </Text>
+                </View>
+              )}
             </View>
-            {renderActivityText(activity)}
+
+            {/* Content */}
+            <View className="flex-1" style={{ gap: 4 }}>
+              <View className="flex-row items-center" style={{ gap: 4 }}>
+                <BodyMedium style={{ color: colors["grey-scale-0"] }} numberOfLines={1} ellipsizeMode="tail">
+                  {actorName}
+                </BodyMedium>
+                <BodyMain style={{ color: colors["grey-scale-300"] }}>
+                  {timestamp}
+                </BodyMain>
+              </View>
+              {renderActivityText(activity)}
+            </View>
           </View>
 
           {/* Right Side Content */}
-          <View className="flex-row items-center ml-2">
+          <View className="flex-row items-center" style={{ gap: 12 }}>
             {/* Song Artwork */}
             {activity.song_artwork && (
               <Image
                 source={{ uri: activity.song_artwork }}
-                className="w-10 h-10 rounded-lg mr-3"
+                style={{ width: 30, height: 30, borderRadius: 4 }}
                 defaultSource={require("../../assets/images/placeholder.png")}
+                resizeMode="cover"
               />
             )}
 
@@ -273,28 +288,26 @@ export default function Activity() {
               activity.is_actionable &&
               !activity.is_completed &&
               !isProcessed && (
-                <Pressable
-                  className="bg-white px-4 py-2 rounded-full active:bg-gray-200"
+                <NotificationButton
+                  label="Add Back"
+                  isSelected={false}
                   onPress={() => handleFriendRequest(activity, "accept")}
-                >
-                  <Text className="text-black font-medium text-lg">
-                    Add&nbsp;Back
-                  </Text>
-                </Pressable>
+                  className="bg-white rounded-[20px] px-6 py-2"
+                />
               )}
 
             {((activity.type === "friend_accepted" && activity.is_completed) ||
               activity.is_completed ||
               isProcessed) && (
-              <View className="border-2 border-neutral-700 px-4 py-2 rounded-full flex-row items-center">
-                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                <Text className="text-white font-medium text-lg">
+              <View className="border border-[#373737] rounded-[20px] px-5 py-2 flex-row items-center" style={{ gap: 10 }}>
+                <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+                <CaptionMain style={{ color: colors["grey-scale-0"] }}>
                   {activity.type === "friend_request" || isProcessed
                     ? "Added"
                     : activity.type === "friend_accepted"
                       ? "Friends"
                       : "Done"}
-                </Text>
+                </CaptionMain>
               </View>
             )}
           </View>
@@ -307,10 +320,10 @@ export default function Activity() {
     if (items.length === 0) return null;
 
     return (
-      <View className="mb-8">
-        <View className="mb-4">
-          <Text className="text-white text-xl font-bold px-4">{title}</Text>
-          <View className="h-0.5 bg-neutral-800 mt-2" />
+      <View className="mb-6">
+        <View className="mb-4 px-4">
+          <Heading2 className="text-white">{title}</Heading2>
+          <View className="h-px bg-[#373737] mt-2" />
         </View>
         <View className="space-y-2">
           {items.map((item, index) => renderActivityItem(item, index))}
@@ -327,22 +340,25 @@ export default function Activity() {
     <Animatable.View
       animation="fadeIn"
       duration={500}
-      className="flex-1 bg-black"
+      className="flex-1 bg-[#0E0E0E]"
     >
       {/* Header */}
-      <View className="pt-1 pb-6 px-4">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-white text-3xl font-bold">Activity</Text>
-            <Text className="text-gray-400 text-xl mt-1">
+      <View className="pt-4 px-4 pb-4">
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-1" style={{ gap: 4 }}>
+            <Heading1 className="text-white">
+              Activity
+            </Heading1>
+            <BodyMedium className="text-[#7f7f7f]">
               Recent notifications from friends
-            </Text>
+            </BodyMedium>
           </View>
           <Pressable
-            className="w-[3rem] h-[3rem] border-2 border-neutral-700 rounded-lg items-center justify-center active:bg-neutral-800"
             onPress={() => router.push("/(app)/friends")}
+            className="border rounded-[10px] px-3 py-3 items-center justify-center active:opacity-70"
+            style={{ borderColor: colors["grey-scale-500"] }}
           >
-            <AddPersonIcon size={25} color="white" />
+            <AddPersonIcon size={24} color={colors["grey-scale-500"]} />
           </Pressable>
         </View>
       </View>
@@ -352,7 +368,7 @@ export default function Activity() {
         data={activities}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => renderActivityItem(item, index)}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: 24, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         onEndReached={loadMoreActivities}
         onEndReachedThreshold={0.5}
@@ -365,13 +381,13 @@ export default function Activity() {
         }
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center px-8 py-20">
-            <Ionicons name="notifications-outline" size={64} color="#9CA3AF" />
-            <Text className="text-white text-xl text-center mb-2 mt-4">
+            <Ionicons name="notifications-outline" size={64} color={colors["grey-scale-400"]} />
+            <BodyMedium className="text-center mb-2 mt-4" style={{ color: colors["grey-scale-0"] }}>
               No activities yet
-            </Text>
-            <Text className="text-gray-400 text-lg text-center">
+            </BodyMedium>
+            <BodyMain className="text-center" style={{ color: colors["grey-scale-400"] }}>
               Activities from your friends will appear here
-            </Text>
+            </BodyMain>
           </View>
         }
       />

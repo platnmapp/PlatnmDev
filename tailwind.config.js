@@ -26,6 +26,8 @@ module.exports = {
       colors: {
         "text-primary": "#dadada",
         "text-secondary": "#7f7f7f",
+        // App background color
+        "app-background": "#0E0E0E",
       },
       // Note: Tailwind's default spacing scale already matches our Figma spacing system:
       // 0=0px (5XS), 0.5=2px (4XS), 1=4px (3XS), 2=8px (2XS), 3=12px (XS), 4=16px (S),

@@ -25,6 +25,8 @@ import Animated, {
 import SkeletonLoader from "../../components/SkeletonLoader";
 import ThumbsDownIcon from "../../components/ThumbsDownIcon";
 import ThumbsUpIcon from "../../components/ThumbsUpIcon";
+import { BodyMain, BodyMedium, CaptionFineLine, CaptionMedium, Heading1, Heading2 } from "../../components/Typography";
+import { colors } from "../../lib/colors";
 import { ActivityService } from "../../lib/activityService";
 import { FavoriteSong, FavoriteSongsService } from "../../lib/favoriteSongs";
 import {
@@ -210,55 +212,65 @@ function SongItem({
           />
 
           <View
-            className="mx-4 p-4 mt-3 rounded-2xl border border-[#1B1B1B]"
-            style={{ position: "relative", zIndex: 1 }}
+            className="mx-4 p-4 mt-3 rounded-[20px]"
+            style={{ 
+              position: "relative", 
+              zIndex: 1,
+              backgroundColor: colors.card,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 4,
+            }}
           >
-            <View className="flex-row items-center">
-              <Image
-                source={{ uri: song.song_artwork }}
-                className="w-16 h-16 rounded-lg mr-3"
-                defaultSource={require("../../assets/images/placeholder.png")}
-              />
-              <View className="flex-1 mr-3">
-                <Text
-                  className="text-white font-semibold text-lg"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
+            <View className="flex-row items-center" style={{ gap: 24 }}>
+              <View className="rounded-[8px] overflow-hidden" style={{ width: 65, height: 65 }}>
+                <Image
+                  source={{ uri: song.song_artwork }}
+                  style={{ width: 65, height: 65 }}
+                  defaultSource={require("../../assets/images/placeholder.png")}
+                  resizeMode="cover"
+                />
+              </View>
+              <View className="flex-1" style={{ gap: 4 }}>
+                <BodyMedium className="text-white" numberOfLines={1} ellipsizeMode="tail">
                   {song.song_title}
-                </Text>
-                <Text
-                  className="text-gray-400"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
+                </BodyMedium>
+                <BodyMain style={{ color: colors["grey-scale-300"] }} numberOfLines={1} ellipsizeMode="tail">
                   {song.song_artist}
-                </Text>
+                </BodyMain>
               </View>
 
               {/* Reaction Indicator */}
               {isQueue && onLike && onDislike ? (
-                <View className="flex-row space-x-3">
+                <View className="flex-row" style={{ gap: 10.5 }}>
                   <Pressable
-                    className={`w-9 h-9 rounded-full items-center justify-center mr-2 active:bg-neutral-800 ${
-                      reaction === "dislike" ? "bg-red-600" : "bg-neutral-700"
-                    }`}
+                    className="rounded-full items-center justify-center active:opacity-70"
+                    style={{ 
+                      width: 33.75, 
+                      height: 33.75,
+                      backgroundColor: colors["grey-scale-700"],
+                    }}
                     onPress={() => handleReaction("dislike")}
                   >
                     <ThumbsDownIcon
-                      size={18}
-                      color={reaction === "dislike" ? "#FFFFFF" : "#9CA3AF"}
+                      size={13.5}
+                      color={colors["grey-scale-500"]}
                     />
                   </Pressable>
                   <Pressable
-                    className={`w-9 h-9 rounded-full items-center justify-center active:bg-neutral-800 ${
-                      reaction === "like" ? "bg-green-600" : "bg-neutral-700"
-                    }`}
+                    className="rounded-full items-center justify-center active:opacity-70"
+                    style={{ 
+                      width: 33.75, 
+                      height: 33.75,
+                      backgroundColor: colors["grey-scale-700"],
+                    }}
                     onPress={() => handleReaction("like")}
                   >
                     <ThumbsUpIcon
-                      size={18}
-                      color={reaction === "like" ? "#FFFFFF" : "#9CA3AF"}
+                      size={13.5}
+                      color={colors["grey-scale-500"]}
                     />
                   </Pressable>
                 </View>
@@ -298,7 +310,7 @@ function SongItem({
               ) : null}
             </View>
 
-            <View className="h-0.5 bg-gray-800 mt-4 mb-2" />
+            <View className="h-px mt-4 mb-2" style={{ backgroundColor: colors["grey-scale-700"] }} />
 
             {/* Sender info */}
             {!isQueue && (
@@ -308,9 +320,13 @@ function SongItem({
                     {song.senders.slice(0, 3).map((sender, i) => (
                       <View
                         key={sender.id + i}
-                        className={`w-6 h-6 rounded-full bg-neutral-700 items-center justify-center border-2 border-black ${
+                        className={`w-6 h-6 rounded-full items-center justify-center border-2 ${
                           i > 0 ? "-ml-2" : ""
                         }`}
+                        style={{ 
+                          backgroundColor: colors["grey-scale-700"],
+                          borderColor: colors.background,
+                        }}
                       >
                         {sender.avatar_url ? (
                           <Image
@@ -327,19 +343,19 @@ function SongItem({
                       </View>
                     ))}
                   </View>
-                  <Text
-                    className="text-gray-400 text-sm ml-2 shrink"
+                  <BodyMain
+                    style={{ color: colors["grey-scale-300"], marginLeft: 8 }}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >
-                    <Text className="font-bold">
+                    <BodyMedium style={{ color: colors["grey-scale-0"] }}>
                       {getSenderDisplayName(song.senders[0])}
-                    </Text>
+                    </BodyMedium>
                     {song.senders.length > 1 &&
                       ` and ${song.senders.length - 1} other${
                         song.senders.length - 1 > 1 ? "s" : ""
                       }`}
-                  </Text>
+                  </BodyMain>
                 </View>
               </View>
             )}
@@ -778,7 +794,7 @@ export default function Profile() {
     <Animatable.View
       animation="fadeIn"
       duration={500}
-      className="flex-1 bg-black"
+      className="flex-1 bg-[#0E0E0E]"
     >
       <FlatList
         data={activeTab === "My Queue" ? queuedSongs : reactedSongs}
@@ -799,60 +815,68 @@ export default function Profile() {
               </View>
 
               {/* Profile Section */}
-              <View className="flex-row items-center mb-4">
-                <View className="w-24 h-24 rounded-full mr-4 bg-bg-neutral-700 items-center justify-center">
+              <View className="flex-row items-center mb-4" style={{ gap: 12 }}>
+                <View className="rounded-full overflow-hidden" style={{ width: 65, height: 65 }}>
                   {profile.avatar_url ? (
                     <Image
                       source={{ uri: profile.avatar_url }}
-                      className="w-20 h-20 rounded-full"
+                      style={{ width: 65, height: 65 }}
+                      resizeMode="cover"
                     />
                   ) : (
-                    <Text className="text-white text-3xl font-bold">
-                      {(
-                        profile.first_name?.[0] ||
-                        profile.username?.[0] ||
-                        "U"
-                      ).toUpperCase()}
-                    </Text>
+                    <View className="w-full h-full bg-[#373737] items-center justify-center">
+                      <Text className="text-white" style={{ fontSize: 24, fontWeight: "600" }}>
+                        {(
+                          profile.first_name?.[0] ||
+                          profile.username?.[0] ||
+                          "U"
+                        ).toUpperCase()}
+                      </Text>
+                    </View>
                   )}
                 </View>
                 <View className="flex-row flex-1 justify-around items-center">
-                  <Pressable
-                    className="items-center active:bg-neutral-800"
-                    onPress={() => router.push("/(app)/friends-list")}
-                  >
-                    <Text className="text-white text-2xl font-bold">
+                  <View className="items-center" style={{ gap: 5 }}>
+                    <Heading1 className="text-white">
                       {stats?.friends_count || 0}
-                    </Text>
-                    <Text className="text-gray-400 text-sm">Friends</Text>
-                  </Pressable>
-                  <View className="w-px h-8 bg-neutral-700" />
-                  <View className="items-center">
-                    <Text className="text-white text-2xl font-bold">
-                      {stats?.songs_sent_count || 0}
-                    </Text>
-                    <Text className="text-gray-400 text-sm">Songs Sent</Text>
+                    </Heading1>
+                    <CaptionFineLine style={{ color: "#6b6969", textAlign: "center" }}>
+                      Friends
+                    </CaptionFineLine>
                   </View>
-                  <View className="w-px h-8 bg-neutral-700" />
-                  <View className="items-center">
-                    <Text className="text-white text-2xl font-bold">
+                  <View className="items-center" style={{ gap: 5 }}>
+                    <Heading1 className="text-white">
+                      {stats?.songs_sent_count || 0}
+                    </Heading1>
+                    <CaptionFineLine style={{ color: "#6b6969", textAlign: "center" }}>
+                      Songs Sent
+                    </CaptionFineLine>
+                  </View>
+                  <View className="items-center" style={{ gap: 5 }}>
+                    <Heading1 className="text-white">
                       {stats?.likes_received_count || 0}
-                    </Text>
-                    <Text className="text-gray-400 text-sm">Likes</Text>
+                    </Heading1>
+                    <CaptionFineLine style={{ color: "#6b6969", textAlign: "center" }}>
+                      Likes
+                    </CaptionFineLine>
                   </View>
                 </View>
               </View>
 
               {/* Action Buttons */}
-              <View className="flex-row mb-6 gap-3">
+              <View className="flex-row mb-6" style={{ gap: 8 }}>
                 <Pressable
-                  className="bg-[#1B1B1B] border-2 border-neutral-800 py-2 rounded-[20px] active:bg-neutral-800 flex-1 items-center"
+                  className="bg-[#1B1B1B] border border-[#373737] rounded-[15px] active:opacity-70 flex-1 items-center justify-center"
+                  style={{ paddingHorizontal: 16, paddingVertical: 8 }}
                   onPress={() => router.push("/(app)/edit-profile")}
                 >
-                  <Text className="text-white text-md">Edit Profile</Text>
+                  <CaptionMedium className="text-white">
+                    Edit Profile
+                  </CaptionMedium>
                 </Pressable>
                 <Pressable
-                  className="bg-[#1B1B1B] border-2 border-neutral-800 py-2 rounded-[20px] active:bg-neutral-800 flex-1 items-center"
+                  className="bg-[#1B1B1B] border border-[#373737] rounded-[15px] active:opacity-70 flex-1 items-center justify-center"
+                  style={{ paddingHorizontal: 16, paddingVertical: 8 }}
                   onPress={() =>
                     router.push({
                       pathname: "/(accountsetup)/linkaccount",
@@ -860,35 +884,37 @@ export default function Profile() {
                     })
                   }
                 >
-                  <Text className="text-white text-md">
-                    {UserProfileService.hasConnectedMusicService(profile)
-                      ? "Manage Apps"
-                      : "Link Apps"}
-                  </Text>
+                  <CaptionMedium className="text-white">
+                    Share app
+                  </CaptionMedium>
                 </Pressable>
                 <Pressable
-                  className="bg-[#1B1B1B] border-2 border-neutral-800 py-2 rounded-[20px] active:bg-neutral-800 flex-1 items-center"
+                  className="bg-[#1B1B1B] border border-[#373737] rounded-[15px] active:opacity-70 flex-1 items-center justify-center"
+                  style={{ paddingHorizontal: 16, paddingVertical: 8 }}
                   onPress={handleSettings}
                 >
-                  <Text className="text-white text-md">Settings</Text>
+                  <CaptionMedium className="text-white">
+                    Settings
+                  </CaptionMedium>
                 </Pressable>
               </View>
 
               {/* Favorite Songs */}
               <View className="mb-6">
-                <Text className="text-white text-xl font-semibold mb-4">
+                <Heading2 className="text-white mb-4">
                   Favorite Songs
-                </Text>
-                <View className="flex-row justify-center gap-2">
+                </Heading2>
+                <View className="flex-row justify-between">
                   {[1, 2, 3].map((position) => {
                     const favoriteSong = favoriteSongs.find(
                       (song) => song.position === position
                     );
 
                     return (
-                      <View key={position} className="items-center flex-1 ml-1 mr-1">
+                      <View key={position} className="items-center" style={{ flex: 1 }}>
                         <Pressable
-                          className="active:bg-neutral-800 w-full aspect-square rounded-lg overflow-hidden"
+                          className="rounded-lg overflow-hidden active:opacity-70"
+                          style={{ width: 114, height: 114 }}
                           onPress={() => {
                             console.log(
                               "Pressable pressed for position:",
@@ -902,41 +928,36 @@ export default function Profile() {
                           {favoriteSong ? (
                             <Image
                               source={{ uri: favoriteSong.song_artwork }}
-                              className="w-full h-full"
+                              style={{ width: 114, height: 114 }}
                               defaultSource={require("../../assets/images/placeholder.png")}
+                              resizeMode="cover"
                             />
                           ) : (
-                            <View className="w-full h-full bg-neutral-700 rounded-lg border border-neutral-700 justify-center items-center">
-                              <Ionicons name="add" size={32} color="#9CA3AF" />
+                            <View className="w-full h-full rounded-lg border justify-center items-center" style={{ backgroundColor: colors.card, borderColor: colors["grey-scale-700"] }}>
+                              <Ionicons name="add" size={24} color={colors["grey-scale-0"]} />
                             </View>
                           )}
                         </Pressable>
 
                         {/* Song title and artist outside Pressable, so active background does not affect text */}
-                        <View className="w-full mt-2">
+                        <View className="w-full" style={{ gap: 2, marginTop: 6 }}>
                           {favoriteSong ? (
                             <>
-                              <Text
-                                className="text-white text-xs font-bold text-center"
-                                numberOfLines={1}
-                              >
+                              <BodyMedium className="text-white text-center" numberOfLines={1} style={{ fontSize: 13 }}>
                                 {favoriteSong.song_title}
-                              </Text>
-                              <Text
-                                className="text-gray-400 text-xs text-center mt-0.5"
-                                numberOfLines={1}
-                              >
+                              </BodyMedium>
+                              <BodyMain className="text-center" numberOfLines={1} style={{ fontSize: 13, color: colors["grey-scale-400"] }}>
                                 {favoriteSong.song_artist}
-                              </Text>
+                              </BodyMain>
                             </>
                           ) : (
                             <>
-                              <Text className="text-gray-400 text-s text-center font-bold">
+                              <BodyMedium className="text-center" style={{ fontSize: 13, color: colors["grey-scale-0"] }}>
                                 Song {position}
-                              </Text>
-                              <Text className="text-gray-500 text-s text-center mt-0.5">
+                              </BodyMedium>
+                              <BodyMain className="text-center" style={{ fontSize: 13, color: colors["grey-scale-400"] }}>
                                 Artist
-                              </Text>
+                              </BodyMain>
                             </>
                           )}
                         </View>
@@ -952,38 +973,33 @@ export default function Profile() {
               <View className="flex-row">
                 <Pressable
                   className="flex-1 pb-4 items-center"
+                  style={{ gap: 20 }}
                   onPress={() => handleTabChange("My Queue")}
                 >
-                  <Text
-                    className={` text-lg ${
-                      activeTab === "My Queue" ? "text-white" : "text-gray-400"
-                    }`}
-                  >
+                  <BodyMedium style={{ color: activeTab === "My Queue" ? colors["grey-scale-0"] : colors["grey-scale-500"] }}>
                     My Queue
-                  </Text>
+                  </BodyMedium>
                 </Pressable>
                 <Pressable
                   className="flex-1 pb-4 items-center"
+                  style={{ gap: 20 }}
                   onPress={() => handleTabChange("Archive")}
                 >
-                  <Text
-                    className={` text-lg ${
-                      activeTab === "Archive" ? "text-white" : "text-gray-400"
-                    }`}
-                  >
+                  <BodyMedium style={{ color: activeTab === "Archive" ? colors["grey-scale-0"] : colors["grey-scale-500"] }}>
                     Archive
-                  </Text>
+                  </BodyMedium>
                 </Pressable>
               </View>
-              <View className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1B1B1B]" />
+              <View className="absolute bottom-0 left-0 right-0 h-px" style={{ backgroundColor: colors["grey-scale-700"] }} />
               <Animatable.View
                 animation={
                   activeTab === "My Queue" ? "fadeInLeft" : "fadeInRight"
                 }
                 duration={300}
-                className={`absolute bottom-0 h-0.5 bg-white w-1/2 ${
+                className={`absolute bottom-0 h-px w-1/2 ${
                   activeTab === "My Queue" ? "left-0" : "left-1/2"
                 }`}
+                style={{ backgroundColor: activeTab === "My Queue" ? colors["grey-scale-0"] : colors["grey-scale-500"] }}
               />
             </View>
           </>
@@ -1006,27 +1022,27 @@ export default function Profile() {
           <View className="flex-1 justify-center items-center px-8 py-20">
             {activeTab === "My Queue" ? (
               <>
-                <Ionicons name="list-outline" size={64} color="#9CA3AF" />
-                <Text className="text-white text-lg text-center mb-2 mt-4">
+                <Ionicons name="list-outline" size={64} color={colors["grey-scale-400"]} />
+                <BodyMedium className="text-center mb-2 mt-4" style={{ color: colors["grey-scale-0"] }}>
                   Your queue is empty
-                </Text>
-                <Text className="text-gray-400 text-sm text-center">
+                </BodyMedium>
+                <BodyMain className="text-center" style={{ color: colors["grey-scale-400"] }}>
                   Share songs to yourself to add them to your queue
-                </Text>
+                </BodyMain>
               </>
             ) : (
               <>
                 <Ionicons
                   name="musical-notes-outline"
                   size={64}
-                  color="#9CA3AF"
+                  color={colors["grey-scale-400"]}
                 />
-                <Text className="text-white text-lg text-center mb-2 mt-4">
+                <BodyMedium className="text-center mb-2 mt-4" style={{ color: colors["grey-scale-0"] }}>
                   No reactions yet
-                </Text>
-                <Text className="text-gray-400 text-sm text-center">
+                </BodyMedium>
+                <BodyMain className="text-center" style={{ color: colors["grey-scale-400"] }}>
                   Songs you've liked or disliked will appear here
-                </Text>
+                </BodyMain>
               </>
             )}
           </View>

@@ -36,20 +36,26 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center justify-center px-3 py-2 rounded-lg active:opacity-70 ${
-        isSelected ? "bg-neutral-700" : "bg-transparent"
+      className={`flex-row items-center justify-center rounded-[20px] active:opacity-70 ${
+        isSelected 
+          ? "border border-[#373737]" 
+          : "bg-white"
       } ${className || ""}`}
+      style={isSelected ? { 
+        paddingHorizontal: 20, 
+        paddingVertical: 8,
+        gap: 10,
+      } : {}}
       {...props}
     >
       {isSelected && (
         <Ionicons
           name="checkmark"
-          size={14}
+          size={18}
           color="#FFFFFF"
-          style={{ marginRight: 6 }}
         />
       )}
-      <CaptionMain className={isSelected ? "text-white" : "text-black"}>
+      <CaptionMain style={{ color: isSelected ? "#FFFFFF" : "#000000" }}>
         {isSelected ? "Added" : label}
       </CaptionMain>
     </Pressable>

@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import "../global.css";
 import "../polyfills/worklets";
+import { colors } from "../lib/colors";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -280,7 +281,7 @@ const InitialLayout = () => {
   // Slot renders the current child route (either from the (app) or (auth) group)
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <Slot />
       </SafeAreaView>
     </GestureHandlerRootView>

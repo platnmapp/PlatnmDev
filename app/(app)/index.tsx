@@ -10,7 +10,6 @@ import {
   Platform,
   Pressable,
   Text,
-  TextInput,
   UIManager,
   View,
 } from "react-native";
@@ -24,9 +23,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import CrossPlatformSearchResults from "../../components/CrossPlatformSearchResults";
+import { SearchBar } from "../../components/SearchBar";
 import SkeletonLoader from "../../components/SkeletonLoader";
+import { BodyMain, BodyMedium, Heading1 } from "../../components/Typography";
 import ThumbsDownIcon from "../../components/ThumbsDownIcon";
 import ThumbsUpIcon from "../../components/ThumbsUpIcon";
+import { colors } from "../../lib/colors";
 import { ActivityService } from "../../lib/activityService";
 import { MusicUrlHandler, SearchResultTrack } from "../../lib/musicUrlHandler";
 import {
@@ -225,7 +227,7 @@ function SongItem({
           />
 
           <Pressable
-            className="mb-4 bg-neutral-900 rounded-[20px] p-4 active:bg-neutral-800"
+            className="mb-3 bg-[#1b1b1b] rounded-[20px] px-4 py-4 active:bg-neutral-800"
             style={{ position: "relative", zIndex: 1 }}
             onPress={() => {
               if (song.external_url) {
@@ -239,73 +241,58 @@ function SongItem({
             }}
           >
             {/* Song Info */}
-            <View className="flex-row items-center mb-2">
-              <View className="w-16 h-16 rounded-lg mr-3 items-center justify-center p-12">
+            <View className="flex-row items-center mb-3" style={{ gap: 12 }}>
+              <View className="rounded-[8px] overflow-hidden bg-[#373737]" style={{ width: 65, height: 65 }}>
                 {song.song_artwork ? (
                   <Image
                     source={{ uri: song.song_artwork }}
-                    className="w-24 h-24 rounded-[10px]"
+                    style={{ width: 65, height: 65 }}
                     defaultSource={require("../../assets/images/placeholder.png")}
+                    resizeMode="cover"
                   />
                 ) : (
-                  <Ionicons name="musical-notes" size={24} color="#9CA3AF" />
+                  <View className="w-full h-full items-center justify-center" style={{ width: 65, height: 65 }}>
+                    <Ionicons name="musical-notes" size={24} color={colors["grey-scale-400"]} />
+                  </View>
                 )}
               </View>
-              <View className="flex-1">
-                {/* SONG TITLE: Horizontal auto-scroll, one line */}
+              <View className="flex-1" style={{ gap: 2 }}>
+                {/* SONG TITLE */}
                 <Text
-                  className="text-white font-semibold text-lg"
-                  // Prevents breaking into two lines
-                  ellipsizeMode="clip"
-                  style={{ minWidth: "100%" /* ensures no jumpy shrink */ }}
+                  className="text-white"
+                  style={{ fontSize: 16, fontWeight: "500", lineHeight: 20 }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
                   {song.song_title}
                 </Text>
 
-                {/* ARTIST NAME: truncate with ... at end */}
+                {/* ARTIST NAME */}
                 <Text
-                  className="text-gray-400"
+                  className="text-[#b4b4b4]"
+                  style={{ fontSize: 16, fontWeight: "400", lineHeight: 20 }}
                   numberOfLines={1}
-                  ellipsizeMode="tail" // cuts off at end with ...
+                  ellipsizeMode="tail"
                 >
                   {song.song_artist}
                 </Text>
               </View>
 
-              {/* Action Buttons: Cross-platform, Like/Dislike */}
-              <View className="flex-row items-center space-x-3 ml-4">
-                {/* Cross-platform Button - Only show for Spotify songs */}
-                {song.service === "spotify" && song.external_url && (
-                  <Pressable
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      if (song.external_url) {
-                        MusicUrlHandler.mapAndOpen(
-                          song.external_url,
-                          "apple",
-                          song.song_title
-                        );
-                      }
-                    }}
-                    className="w-9 h-9 rounded-full items-center justify-center mr-2"
-                  >
-                    {/* <Ionicons name="logo-apple" size={16} color="#9CA3AF" /> */}
-                  </Pressable>
-                )}
-
+              {/* Action Buttons: Like/Dislike */}
+              <View className="flex-row items-center" style={{ gap: 10 }}>
                 <Pressable
                   onPress={(e) => {
                     e.stopPropagation();
                     handleReaction("dislike");
                   }}
-                  className={`w-9 h-9 rounded-full items-center justify-center active:bg-neutral-800 mr-2 ${
-                    reaction === "dislike" ? "bg-red-600" : "bg-neutral-700"
+                  className={`w-[33.75px] h-[33.75px] rounded-full items-center justify-center ${
+                    reaction === "dislike" ? "bg-[#2f2e32]" : "bg-[#373737]"
                   }`}
                   disabled={reaction !== null}
                 >
                   <ThumbsDownIcon
                     size={18}
-                    color={reaction === "dislike" ? "#FFFFFF" : "#9CA3AF"}
+                    color={reaction === "dislike" ? "#FFFFFF" : "#7f7f7f"}
                   />
                 </Pressable>
                 <Pressable
@@ -313,20 +300,20 @@ function SongItem({
                     e.stopPropagation();
                     handleReaction("like");
                   }}
-                  className={`w-9 h-9 rounded-full items-center justify-center active:bg-neutral-800 ${
-                    reaction === "like" ? "bg-green-600" : "bg-neutral-700"
+                  className={`w-[33.75px] h-[33.75px] rounded-full items-center justify-center ${
+                    reaction === "like" ? "bg-[#2f2e32]" : "bg-[#373737]"
                   }`}
                   disabled={reaction !== null}
                 >
                   <ThumbsUpIcon
                     size={18}
-                    color={reaction === "like" ? "#FFFFFF" : "#9CA3AF"}
+                    color={reaction === "like" ? "#FFFFFF" : "#7f7f7f"}
                   />
                 </Pressable>
               </View>
             </View>
 
-            <View className="h-px bg-[#282828] my-2" />
+            <View className="h-px bg-[#282828] my-3" />
 
             {/* Sender Info */}
             <View className="flex-row items-center justify-between">
@@ -797,23 +784,24 @@ export default function Hitlist() {
     <Animatable.View
       animation="fadeIn"
       duration={500}
-      className="flex-1 bg-black"
+      className="flex-1 bg-[#0E0E0E]"
     >
       {/* Header */}
-      <View className="pt-1 px-4 mb-6 ">
-        <Text className="text-white text-3xl font-bold">Your Hitlist</Text>
-        <Text className="text-gray-400 text-xl mb-4">
-          Songs your friends think you should hear
-        </Text>
+      <View className="pt-4 px-4 pb-4">
+        <View className="mb-4" style={{ gap: 4 }}>
+          <Heading1 className="text-white">
+            Your Hitlist
+          </Heading1>
+          <BodyMedium className="text-[#7f7f7f]">
+            Songs your friends think you should hear
+          </BodyMedium>
+        </View>
 
-        {/* Search Bar */}
-        <View className="flex-row items-center space-x-3">
-          <View className="flex-1 flex-row items-center bg-neutral-700 rounded-full px-4 py-4">
-            <Ionicons name="search" size={22} color="#9CA3AF" />
-            <TextInput
+        {/* Search Bar and Filter */}
+        <View className="flex-row items-center" style={{ gap: 13 }}>
+          <View className="flex-1">
+            <SearchBar
               placeholder="Search for Artists/Songs..."
-              placeholderTextColor="#9CA3AF"
-              className="flex-1 text-white pb-1 ml-3 text-xl"
               value={searchText}
               onChangeText={setSearchText}
               autoCapitalize="none"
@@ -821,10 +809,11 @@ export default function Hitlist() {
             />
           </View>
           <Pressable
-            className="ml-4 px-2 w-14 h-14 border-neutral-700 border-2 rounded-lg items-center justify-center active:bg-neutral-800"
             onPress={() => setIsFilterModalVisible(true)}
+            className="border rounded-[10px] px-3 py-3 items-center justify-center active:opacity-70"
+            style={{ borderColor: colors["grey-scale-500"] }}
           >
-            <Ionicons name="filter-outline" size={22} color="#9CA3AF" />
+            <Ionicons name="options" size={24} color={colors["grey-scale-500"]} />
           </Pressable>
         </View>
       </View>
@@ -842,7 +831,7 @@ export default function Hitlist() {
             user={user}
           />
         )}
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingTop: 12 }}
         showsVerticalScrollIndicator={false}
         onEndReached={loadMoreSongs}
         onEndReachedThreshold={0.5}
@@ -855,15 +844,15 @@ export default function Hitlist() {
         }
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center px-8 py-20">
-            <Ionicons name="musical-notes-outline" size={64} color="#9CA3AF" />
-            <Text className="text-white text-lg text-center mb-2 mt-4">
+            <Ionicons name="musical-notes-outline" size={64} color={colors["grey-scale-400"]} />
+            <BodyMedium className="text-center mb-2 mt-4" style={{ color: colors["grey-scale-0"] }}>
               {searchText.trim() ? "No songs found" : "No songs shared yet"}
-            </Text>
-            <Text className="text-gray-400 text-sm text-center">
+            </BodyMedium>
+            <BodyMain className="text-center" style={{ color: colors["grey-scale-400"] }}>
               {searchText.trim()
                 ? "Try adjusting your search terms"
                 : "When friends share songs with you, they'll appear here"}
-            </Text>
+            </BodyMain>
           </View>
         }
       />
