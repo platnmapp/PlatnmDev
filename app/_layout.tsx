@@ -1,6 +1,7 @@
 import { Slot, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import "nativewind";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { ActivityIndicator, Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -278,9 +279,11 @@ const InitialLayout = () => {
   }
 
   console.log("Rendering Slot");
+  
   // Slot renders the current child route (either from the (app) or (auth) group)
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="light" />
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <Slot />
       </SafeAreaView>
