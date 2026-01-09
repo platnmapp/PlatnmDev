@@ -47,34 +47,47 @@ export class DeepLinkHandler {
    * Handle music links from shared content
    */
   static handleMusicLink(url: string, forceHandle: boolean = false): boolean {
+    console.log("PLATNM_SHARE_DEBUG_2024: handleMusicLink called with URL:", url, "forceHandle:", forceHandle);
+    console.log("PLATNM_SHARE_DEBUG_2024: isUserReady:", this.isUserReady);
+    
     if (!this.isUserReady && !forceHandle) {
-      console.log("User not ready, will handle music link later");
+      console.log("PLATNM_SHARE_DEBUG_2024: User not ready and not forcing, will handle music link later");
       return false;
     }
 
     // Parse the music link
     const parsedLink = MusicLinkParser.parseLink(url);
+    console.log("PLATNM_SHARE_DEBUG_2024: Parsed link - isSupported:", parsedLink.isSupported, "service:", parsedLink.service);
+    console.log("PLATNM_SHARE_DEBUG_2024: isMusicRelated check:", this.isMusicRelated(url));
 
     if (parsedLink.isSupported || this.isMusicRelated(url)) {
-      console.log("Navigating to shared music screen with:", url);
+      console.log("PLATNM_SHARE_DEBUG_2024: URL is supported or music-related, navigating to shared music screen");
+      console.log("PLATNM_SHARE_DEBUG_2024: Original URL:", url);
+      
+      const encodedUrl = encodeURIComponent(url);
+      console.log("PLATNM_SHARE_DEBUG_2024: Encoded URL:", encodedUrl);
       
       // Use push for better navigation flow when app is running
-      console.log("About to navigate to shared-music with params:", {
-        url: encodeURIComponent(url),
+      const params = {
+        url: encodedUrl,
         supported: parsedLink.isSupported.toString(),
-      });
+      };
+      console.log("PLATNM_SHARE_DEBUG_2024: About to navigate to shared-music with params:", params);
       
-      router.push({
-        pathname: "/(app)/shared-music",
-        params: {
-          url: encodeURIComponent(url),
-          supported: parsedLink.isSupported.toString(),
-        },
-      });
-      return true;
+      try {
+        router.push({
+          pathname: "/(app)/shared-music",
+          params: params,
+        });
+        console.log("PLATNM_SHARE_DEBUG_2024: router.push called successfully");
+        return true;
+      } catch (error) {
+        console.error("PLATNM_SHARE_DEBUG_2024: ERROR calling router.push:", error);
+        return false;
+      }
     }
 
-    console.log("URL not music-related:", url);
+    console.log("PLATNM_SHARE_DEBUG_2024: URL not music-related:", url);
     return false;
   }
 
@@ -102,43 +115,56 @@ export class DeepLinkHandler {
    * Parse app URL and route accordingly
    */
   static handleAppUrl(url: string): boolean {
-    console.log("Handling app URL:", url);
-    console.log("Current user ready state:", this.isUserReady);
+    console.log("PLATNM_SHARE_DEBUG_2024: DeepLinkHandler.handleAppUrl called with URL:", url);
+    console.log("PLATNM_SHARE_DEBUG_2024: Current user ready state:", this.isUserReady);
 
     try {
       const urlObj = new URL(url);
+      console.log("PLATNM_SHARE_DEBUG_2024: Parsed URL - protocol:", urlObj.protocol, "pathname:", urlObj.pathname, "search:", urlObj.search);
 
       if (urlObj.protocol === "platnm:") {
         const path = urlObj.pathname;
+        console.log("PLATNM_SHARE_DEBUG_2024: Protocol is platnm:, path:", path);
 
         if (path === "shared-music" || path === "/shared-music") {
           const musicUrl = urlObj.searchParams.get("url");
+          console.log("PLATNM_SHARE_DEBUG_2024: Path is shared-music, extracted musicUrl:", musicUrl);
+          
           if (musicUrl) {
             // For share links, always try to handle immediately 
             // even if user ready state is temporarily false (e.g., app in background)
-            console.log("Processing shared music URL immediately:", musicUrl);
-            return this.handleMusicLink(decodeURIComponent(musicUrl), true);
+            const decodedUrl = decodeURIComponent(musicUrl);
+            console.log("PLATNM_SHARE_DEBUG_2024: Decoded music URL:", decodedUrl);
+            console.log("PLATNM_SHARE_DEBUG_2024: Calling handleMusicLink with forceHandle=true");
+            const result = this.handleMusicLink(decodedUrl, true);
+            console.log("PLATNM_SHARE_DEBUG_2024: handleMusicLink returned:", result);
+            return result;
+          } else {
+            console.log("PLATNM_SHARE_DEBUG_2024: ERROR - No musicUrl in search params");
           }
         }
 
         if (path === "spotify-callback" || path === "/spotify-callback") {
           // Spotify OAuth callback - just acknowledge it's handled
           // The actual OAuth flow is managed by AuthSession
-          console.log("Handled Spotify OAuth callback");
+          console.log("PLATNM_SHARE_DEBUG_2024: Handled Spotify OAuth callback");
           return true;
         }
+      } else {
+        console.log("PLATNM_SHARE_DEBUG_2024: Protocol is not platnm:, it's:", urlObj.protocol);
       }
     } catch (error) {
-      console.error("Error parsing app URL:", error);
+      console.error("PLATNM_SHARE_DEBUG_2024: ERROR parsing app URL:", error);
     }
 
     // If user not ready and not a share link, store for later
     if (!this.isUserReady) {
-      console.log("User not ready, storing pending deep link:", url);
+      console.log("PLATNM_SHARE_DEBUG_2024: User not ready, storing pending deep link:", url);
       this.pendingDeepLink = url;
       return true; // Return true since we'll handle it later
     }
 
+    console.log("PLATNM_SHARE_DEBUG_2024: handleAppUrl returning false");
     return false;
   }
 

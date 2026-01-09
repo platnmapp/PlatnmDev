@@ -19,25 +19,27 @@ export default function SharedMusic() {
   const [error, setError] = useState<string | null>(null);
   const [showShareExtension, setShowShareExtension] = useState(false);
 
-  const sharedUrl = params.url || "";
+  // Decode URL if it's encoded (expo-router auto-decodes, but be safe)
+  const sharedUrl = params.url ? decodeURIComponent(params.url) : "";
 
   useEffect(() => {
-    console.log("=== SHARED MUSIC SCREEN DEBUG ===");
-    console.log("ALL PARAMS:", params);
-    console.log("sharedUrl from params:", sharedUrl);
-    console.log("sharedUrl length:", sharedUrl?.length);
-    console.log("sharedUrl type:", typeof sharedUrl);
-    console.log("showShareExtension:", showShareExtension);
-    console.log("musicContent:", musicContent);
-    console.log("isLoading:", loading);
-    console.log("user:", user ? "authenticated" : "not authenticated");
+    console.log("PLATNM_SHARE_DEBUG_2024: shared-music.tsx - useEffect triggered");
+    console.log("PLATNM_SHARE_DEBUG_2024: ALL PARAMS:", JSON.stringify(params));
+    console.log("PLATNM_SHARE_DEBUG_2024: params.url:", params.url);
+    console.log("PLATNM_SHARE_DEBUG_2024: sharedUrl (decoded):", sharedUrl);
+    console.log("PLATNM_SHARE_DEBUG_2024: sharedUrl length:", sharedUrl?.length);
+    console.log("PLATNM_SHARE_DEBUG_2024: sharedUrl type:", typeof sharedUrl);
+    console.log("PLATNM_SHARE_DEBUG_2024: showShareExtension:", showShareExtension);
+    console.log("PLATNM_SHARE_DEBUG_2024: musicContent:", musicContent);
+    console.log("PLATNM_SHARE_DEBUG_2024: isLoading:", loading);
+    console.log("PLATNM_SHARE_DEBUG_2024: user:", user ? "authenticated" : "not authenticated");
 
     if (sharedUrl && sharedUrl.length > 0) {
-      console.log("Processing shared URL:", sharedUrl);
+      console.log("PLATNM_SHARE_DEBUG_2024: Processing shared URL:", sharedUrl);
       handleSharedLink(sharedUrl);
     } else {
-      console.log("No shared URL provided - staying on screen for debugging");
-      console.log("Params received:", JSON.stringify(params));
+      console.log("PLATNM_SHARE_DEBUG_2024: ERROR - No shared URL provided");
+      console.log("PLATNM_SHARE_DEBUG_2024: Params received:", JSON.stringify(params));
       // Don't auto-navigate away - let's debug what's happening
       setLoading(false);
       setError("No URL provided. Debug info: " + JSON.stringify(params));
@@ -45,13 +47,16 @@ export default function SharedMusic() {
   }, [sharedUrl]);
 
   const handleSharedLink = async (url: string) => {
-    console.log("handleSharedLink called with URL:", url);
+    console.log("PLATNM_SHARE_DEBUG_2024: handleSharedLink called with URL:", url);
     setLoading(true);
 
     try {
+      console.log("PLATNM_SHARE_DEBUG_2024: Parsing music link...");
       const parsedLink = MusicLinkParser.parseLink(url);
+      console.log("PLATNM_SHARE_DEBUG_2024: Parsed link result:", JSON.stringify(parsedLink));
 
       if (!parsedLink.isSupported) {
+        console.log("PLATNM_SHARE_DEBUG_2024: Link is not supported");
         Alert.alert(
           "Error",
           MusicLinkParser.getFriendlyErrorMessage(parsedLink)
@@ -60,32 +65,31 @@ export default function SharedMusic() {
         return;
       }
 
-      console.log("Calling MusicContentService.fetchContent...");
+      console.log("PLATNM_SHARE_DEBUG_2024: Calling MusicContentService.fetchContent...");
       const contentResult = await MusicContentService.fetchContent(
         parsedLink,
         user?.id
       );
-      console.log("MusicContentService returned:", contentResult);
+      console.log("PLATNM_SHARE_DEBUG_2024: MusicContentService returned:", JSON.stringify(contentResult));
 
       if (contentResult.success && contentResult.content) {
+        console.log("PLATNM_SHARE_DEBUG_2024: Content fetched successfully, setting musicContent and showing ShareExtension");
         setMusicContent(contentResult.content);
         setShowShareExtension(true);
-        console.log("Set showShareExtension to true");
+        console.log("PLATNM_SHARE_DEBUG_2024: Set showShareExtension to true");
       } else {
-        console.log(
-          "No content returned from MusicContentService",
-          contentResult.error
-        );
+        console.log("PLATNM_SHARE_DEBUG_2024: ERROR - No content returned from MusicContentService:", contentResult.error);
         Alert.alert(
           "Error",
           contentResult.error || "Could not process this music link"
         );
       }
     } catch (error) {
-      console.error("Error processing shared link:", error);
+      console.error("PLATNM_SHARE_DEBUG_2024: ERROR processing shared link:", error);
       Alert.alert("Error", "Failed to process music link");
     } finally {
       setLoading(false);
+      console.log("PLATNM_SHARE_DEBUG_2024: handleSharedLink completed, loading set to false");
     }
   };
 
@@ -97,22 +101,15 @@ export default function SharedMusic() {
     router.replace("/(app)/profile");
   };
 
-  console.log(
-    "SharedMusic: Render state - loading:",
-    loading,
-    "error:",
-    error,
-    "showShareExtension:",
-    showShareExtension
-  );
+  console.log("PLATNM_SHARE_DEBUG_2024: shared-music.tsx - Render state - loading:", loading, "error:", error, "showShareExtension:", showShareExtension);
 
   if (loading) {
-    console.log("SharedMusic: Showing loading state");
+    console.log("PLATNM_SHARE_DEBUG_2024: Showing loading state");
     return <SkeletonLoader />;
   }
 
   if (error) {
-    console.log("SharedMusic: Showing error state:", error);
+    console.log("PLATNM_SHARE_DEBUG_2024: Showing error state:", error);
     return (
       <View className="flex-1 justify-center items-center px-8">
         <Ionicons name="musical-notes-outline" size={64} color="#6B7280" />
@@ -130,7 +127,7 @@ export default function SharedMusic() {
     );
   }
 
-  console.log("SharedMusic: Rendering main view with modal");
+  console.log("PLATNM_SHARE_DEBUG_2024: Rendering main view with modal, showShareExtension:", showShareExtension);
   return (
     <View className="flex-1 bg-black">
       <Modal

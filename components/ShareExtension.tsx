@@ -20,12 +20,14 @@ interface ShareExtensionProps {
   sharedText: string;
   onDismiss: () => void;
   musicContent: MusicContent | null;
+  onShareComplete?: (url: string) => void;
 }
 
 export default function ShareExtension({
   sharedText,
   onDismiss,
   musicContent,
+  onShareComplete,
 }: ShareExtensionProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<Set<string>>(
@@ -107,6 +109,13 @@ export default function ShareExtension({
 
       if (result.success) {
         Alert.alert("Success", "Song shared successfully!");
+        
+        // Call onShareComplete if provided (to store URL in App Group)
+        if (onShareComplete && sharedText) {
+          onShareComplete(sharedText);
+        }
+        
+        // Dismiss the extension
         onDismiss();
       } else {
         Alert.alert("Error", result.error || "Failed to share song");
