@@ -160,6 +160,15 @@ export default function Activity() {
         return `Disliked your hit - ${activity.song_title}`;
       case "song_sent":
       case "song_shared": // Handle both for backwards compatibility
+        // If user is the actor, show "You shared with [friend]"
+        // Otherwise show "Shared with you"
+        if (activity.actor.id === user?.id && activity.recipient) {
+          // Get recipient name
+          const recipientName = activity.recipient.first_name && activity.recipient.last_name
+            ? `${activity.recipient.first_name} ${activity.recipient.last_name}`
+            : activity.recipient.first_name || activity.recipient.username || "a friend";
+          return `You shared "${activity.song_title}" with ${recipientName}`;
+        }
         return `Shared "${activity.song_title}" with you`;
       default:
         return "Unknown activity";
@@ -207,8 +216,28 @@ export default function Activity() {
   };
 
   const renderActivityItem = (activity: ActivityItem, index: number) => {
-    if (activity.actor.id === user?.id) {
-      return null; // Don't render anything if it's the same user
+    // Debug: Log all activities being rendered
+    console.log('renderActivityItem:', {
+      id: activity.id,
+      type: activity.type,
+      actorId: activity.actor.id,
+      userId: user?.id,
+      isOwnSongShare: activity.actor.id === user?.id && (activity.type === "song_sent" || activity.type === "song_shared")
+    });
+
+    // Allow song_sent activities to show even when user is the actor (so user can see what they shared)
+    const isOwnSongShare = activity.actor.id === user?.id && (activity.type === "song_sent" || activity.type === "song_shared");
+    
+    // Filter out other activities where user is the actor (they shouldn't see their own likes/dislikes/friend requests)
+    if (activity.actor.id === user?.id && !isOwnSongShare) {
+      console.log('Filtering out activity where user is actor:', activity.id, activity.type);
+      return null;
+    }
+
+    // Filter out completed friend requests (already accepted)
+    if (activity.type === "friend_request" && activity.is_completed) {
+      console.log('Filtering out completed friend request:', activity.id);
+      return null;
     }
 
     const isProcessed = processedFriendRequests.has(activity.id);

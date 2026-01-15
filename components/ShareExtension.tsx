@@ -86,7 +86,15 @@ export default function ShareExtension({
   };
 
   const handleShare = async () => {
+    console.log('ShareExtension handleShare called:', {
+      hasParsedSong: !!parsedSong,
+      hasCurrentUser: !!currentUser,
+      selectedFriendsCount: selectedFriends.size,
+      selectedFriendIds: Array.from(selectedFriends)
+    });
+
     if (!parsedSong || !currentUser || selectedFriends.size === 0) {
+      console.log('ShareExtension: Cannot share - missing data or no friends selected');
       Alert.alert("Error", "No song data available to share");
       return;
     }
@@ -101,11 +109,19 @@ export default function ShareExtension({
         external_url: parsedSong.externalUrl,
       };
 
+      console.log('ShareExtension: Calling shareSongWithFriends with:', {
+        senderId: currentUser.id,
+        songTitle: sharedSong.title,
+        friendIds: Array.from(selectedFriends)
+      });
+
       const result = await ShareExtensionService.shareSongWithFriends(
         currentUser.id,
         sharedSong,
         Array.from(selectedFriends)
       );
+
+      console.log('ShareExtension: shareSongWithFriends result:', result);
 
       if (result.success) {
         Alert.alert("Success", "Song shared successfully!");

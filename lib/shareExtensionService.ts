@@ -233,6 +233,12 @@ export class ShareExtensionService {
     song: SharedSong,
     friendIds: string[]
   ): Promise<{ success: boolean; error?: string }> {
+    console.log('shareSongWithFriends called:', {
+      senderId,
+      songTitle: song.title,
+      friendIds,
+      friendCount: friendIds.length
+    });
     try {
       // Extract proper song ID from URLs (fixes null constraint error)
       const extractedSongId = this.extractSongId(
@@ -285,9 +291,25 @@ export class ShareExtensionService {
 
       // Use main supabase client for database operations
       if (activities.length > 0) {
-        const { error: activitiesError } = await supabase
+        console.log('Creating activity records:', {
+          count: activities.length,
+          activities: activities.map(a => ({
+            user_id: a.user_id,
+            actor_id: a.actor_id,
+            type: a.type,
+            song_title: a.song_title
+          }))
+        });
+        const { error: activitiesError, data: activitiesData } = await supabase
           .from("activities")
-          .insert(activities);
+          .insert(activities)
+          .select(); // Request data back to verify insertion
+
+        console.log('activities insert result:', {
+          error: activitiesError,
+          dataCount: activitiesData?.length,
+          errorDetails: activitiesError ? JSON.stringify(activitiesError) : null
+        });
 
         if (activitiesError) {
           console.error("Error creating activities:", activitiesError);
@@ -295,7 +317,12 @@ export class ShareExtensionService {
           console.warn(
             "Song shared but failed to create activity notifications"
           );
+        } else {
+          console.log('✅ Activities created successfully:', activitiesData);
+          console.log('✅ Created activity IDs:', activitiesData?.map(a => ({ id: a.id, actor_id: a.actor_id, type: a.type, user_id: a.user_id })));
         }
+      } else {
+        console.log('⚠️ No activities to create (all friends filtered out or no friends)');
       }
 
       return { success: true };

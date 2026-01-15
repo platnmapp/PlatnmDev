@@ -25,6 +25,14 @@ export interface Activity {
     username?: string;
     avatar_url?: string;
   };
+  recipient?: {
+    // For activities where user is actor (they shared), this is the friend who received it
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    avatar_url?: string;
+  };
 }
 
 export interface ActivityGrouped {
@@ -185,6 +193,7 @@ export class ActivityService {
   }
 
   // Fetch activities for a user with pagination
+  // Includes: activities where user is recipient (user_id) OR activities where user is actor (for song shares)
   static async getUserActivities(
     userId: string, 
     cursor?: string
@@ -192,7 +201,16 @@ export class ActivityService {
     try {
       const PAGE_SIZE = 10;
       
-      let query = supabase
+      // Query activities where:
+      // 1. User is the recipient (user_id = userId) - for activities received
+      // 2. User is the actor AND type is song_sent/song_shared (actor_id = userId) - for activities sent
+      // Query activities where:
+      // 1. User is the recipient (user_id = userId) - for activities received
+      // 2. User is the actor AND type is song_sent/song_shared (actor_id = userId) - for activities sent
+      // PostgREST doesn't easily support complex nested OR/AND, so we'll query separately and combine
+      
+      // Query 1: Activities where user is recipient
+      let query1 = supabase
         .from("activities")
         .select(
           `
@@ -210,21 +228,68 @@ export class ActivityService {
         `
         )
         .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(PAGE_SIZE + 1); // Fetch one extra to check if there are more
+        .order("created_at", { ascending: false });
+
+      // Query 2: Activities where user is actor and type is song_sent/song_shared
+      // Note: We need to check both 'song_sent' (new schema) and 'song_shared' (old schema, but also used)
+      let query2 = supabase
+        .from("activities")
+        .select(
+          `
+          id,
+          user_id,
+          actor_id,
+          type,
+          song_title,
+          song_artist,
+          song_artwork,
+          is_actionable,
+          is_completed,
+          created_at,
+          updated_at
+        `
+        )
+        .eq("actor_id", userId)
+        .in("type", ["song_sent", "song_shared"])
+        .order("created_at", { ascending: false });
 
       // Apply cursor if provided
       if (cursor) {
-        query = query.lt("created_at", cursor);
+        query1 = query1.lt("created_at", cursor);
+        query2 = query2.lt("created_at", cursor);
       }
 
-      const { data: activityData, error } = await query;
+      // Execute both queries
+      const [result1, result2] = await Promise.all([
+        query1,
+        query2
+      ]);
+
+      // Combine and deduplicate results
+      const allActivities = [
+        ...(result1.data || []),
+        ...(result2.data || []).filter(a => !result1.data?.some(b => b.id === a.id))
+      ];
+
+      // Sort by created_at descending and limit
+      const sortedActivities = allActivities
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, PAGE_SIZE + 1);
+
+      const error = result1.error || result2.error;
+      const activityData = sortedActivities;
 
       console.log('Activities query result:', { 
         activityData, 
         error, 
         userId,
-        cursor 
+        cursor,
+        query1Count: result1.data?.length || 0,
+        query2Count: result2.data?.length || 0,
+        combinedCount: allActivities.length,
+        sortedCount: sortedActivities.length,
+        query1Data: result1.data,
+        query2Data: result2.data
       });
 
       if (error) {
@@ -241,23 +306,38 @@ export class ActivityService {
       const hasMore = activityData.length > PAGE_SIZE;
       const activities = activityData.slice(0, PAGE_SIZE);
 
-      // Fetch actor profiles separately
+      // Fetch actor profiles and recipient profiles (for "You shared with [friend]")
       const actorIds = [
         ...new Set(activities.map((activity) => activity.actor_id)),
       ];
-      const { data: actors, error: actorsError } = await supabase
+      // For activities where user is the actor, also fetch recipient profiles
+      const recipientIds = [
+        ...new Set(
+          activities
+            .filter(a => a.actor_id === userId && (a.type === "song_sent" || a.type === "song_shared"))
+            .map((activity) => activity.user_id)
+        ),
+      ];
+      const allProfileIds = [...new Set([...actorIds, ...recipientIds])];
+      
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, username, avatar_url")
-        .in("id", actorIds);
+        .in("id", allProfileIds.length > 0 ? allProfileIds : [userId]); // Fallback to userId if empty
 
-      if (actorsError) {
-        console.error("Error fetching actors:", actorsError);
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
         return { activities: [], hasMore: false };
       }
 
       // Combine the data
       const transformedActivities: Activity[] = activities.map((activity) => {
-        const actor = actors?.find((a) => a.id === activity.actor_id);
+        const actor = profiles?.find((a) => a.id === activity.actor_id);
+        // For activities where user is the actor (they shared), get recipient profile
+        const recipient = activity.actor_id === userId && (activity.type === "song_sent" || activity.type === "song_shared")
+          ? profiles?.find((a) => a.id === activity.user_id)
+          : null;
+        
         return {
           id: activity.id,
           user_id: activity.user_id,
@@ -277,7 +357,26 @@ export class ActivityService {
             username: actor?.username,
             avatar_url: actor?.avatar_url,
           },
+          // Store recipient info for "You shared with [friend]" display
+          recipient: recipient ? {
+            id: recipient.id,
+            first_name: recipient.first_name,
+            last_name: recipient.last_name,
+            username: recipient.username,
+            avatar_url: recipient.avatar_url,
+          } : undefined,
         };
+      });
+
+      console.log('Transformed activities:', {
+        count: transformedActivities.length,
+        activities: transformedActivities.map(a => ({
+          id: a.id,
+          type: a.type,
+          actor_id: a.actor_id,
+          user_id: a.user_id,
+          hasRecipient: !!a.recipient
+        }))
       });
 
       // Get the cursor for the next page
