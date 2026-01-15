@@ -9,7 +9,8 @@ export interface Activity {
     | "friend_accepted"
     | "song_liked"
     | "song_disliked"
-    | "song_sent";
+    | "song_sent"
+    | "song_shared"; // Database uses 'song_shared', code uses 'song_sent'
   song_title?: string;
   song_artist?: string;
   song_artwork?: string;

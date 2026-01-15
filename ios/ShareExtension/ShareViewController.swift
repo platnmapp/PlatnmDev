@@ -5,6 +5,10 @@ import os.log
 class ShareViewController: UIViewController {
     
     private var sharedURL: String?
+    private var songTitle: String?
+    private var songArtist: String?
+    private var songArtwork: String?
+    private var songTrackId: String?
     private let logger = OSLog(subsystem: "com.leonardodeltoro.platnm.app.ShareExtension", category: "ShareViewController")
     private let logIdentifier = "PLATNM_SHARE_EXT_2024" // Unique identifier for searching logs
     
@@ -376,6 +380,7 @@ class ShareViewController: UIViewController {
         }
         
         let trackId = String(urlString[trackIdRange])
+        self.songTrackId = trackId
         NSLog("\(logIdentifier): Extracted track ID: \(trackId)")
         
         // Call Supabase Edge Function to get metadata
@@ -454,6 +459,9 @@ class ShareViewController: UIViewController {
             NSLog("\(logIdentifier): Successfully fetched metadata - Title: \(title), Artist: \(artist), Artwork: \(artworkURL ?? "nil")")
             
             DispatchQueue.main.async {
+                self.songTitle = title
+                self.songArtist = artist
+                self.songArtwork = artworkURL
                 self.updateSongUI(title: title, artist: artist, artworkURL: artworkURL)
             }
         }.resume()
@@ -508,16 +516,174 @@ class ShareViewController: UIViewController {
     }
     
     @objc private func shareButtonTapped() {
-        guard let urlString = sharedURL else { return }
+        guard let urlString = sharedURL, !selectedFriendIds.isEmpty else {
+            NSLog("\(logIdentifier): ERROR - Cannot share: no URL or no friends selected")
+            return
+        }
         
         NSLog("\(logIdentifier): Share button tapped with URL: \(urlString)")
         NSLog("\(logIdentifier): Selected friends: \(selectedFriendIds)")
+        NSLog("\(logIdentifier): Song metadata - Title: \(songTitle ?? "nil"), Artist: \(songArtist ?? "nil")")
         
-        // Store in App Group
+        // Create shared songs and activities in database
+        createShareRecords(urlString: urlString)
+        
+        // Store in App Group for main app
         storeInAppGroup(urlString: urlString)
         
-        // Process share (would normally call API here)
+        // Process share and dismiss
         processShare(urlString: urlString)
+    }
+    
+    private func createShareRecords(urlString: String) {
+        let debugId = "share_with_platnm_friends"
+        NSLog("\(debugId): ====== createShareRecords CALLED ======")
+        
+        guard let appGroupId = UserDefaults(suiteName: "group.com.platnm.5a1fixcuqweopqweopqwieopwqieopqwieoiqwopieopqiwopeiqwpoeioqwiepoqiwjdnaskncklnsdlfnlkas9635.app"),
+              let sessionDataString = appGroupId.string(forKey: "sessionData"),
+              let sessionDataData = sessionDataString.data(using: .utf8),
+              let sessionJson = try? JSONSerialization.jsonObject(with: sessionDataData) as? [String: Any],
+              let accessToken = sessionJson["access_token"] as? String,
+              let senderId = sessionJson["user_id"] as? String else {
+            NSLog("\(debugId): ERROR - Could not get session data for sharing")
+            return
+        }
+        
+        let supabaseUrl = "https://uirmafqpkulwkkpyfmrj.supabase.co"
+        let anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpcm1hZnFwa3Vsd2trcHlmbXJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDEwMjMsImV4cCI6MjA4MDM3NzAyM30.OwH5ZtpySBNAXaV4-C1Am1-oLJi42RoXc_3yqgQo-PI"
+        
+        // Extract track ID if we don't have it
+        let trackId = songTrackId ?? extractTrackId(from: urlString)
+        let title = songTitle ?? "Unknown Song"
+        let artist = songArtist ?? "Unknown Artist"
+        let artwork = songArtwork ?? ""
+        
+        NSLog("\(debugId): Creating share records - Track: \(trackId), Title: \(title), Artist: \(artist)")
+        
+        // Create shared_songs records for each friend
+        let sharedSongs = selectedFriendIds.map { friendId in
+            return [
+                "sender_id": senderId,
+                "receiver_id": friendId,
+                "song_id": trackId,
+                "song_title": title,
+                "song_artist": artist,
+                "song_artwork": artwork,
+                "service": "spotify",
+                "external_url": urlString
+            ] as [String: Any]
+        }
+        
+        let sharedSongsUrl = "\(supabaseUrl)/rest/v1/shared_songs"
+        guard let sharedSongsRequestUrl = URL(string: sharedSongsUrl) else {
+            NSLog("\(debugId): ERROR - Invalid shared_songs URL")
+            return
+        }
+        
+        var sharedSongsRequest = URLRequest(url: sharedSongsRequestUrl)
+        sharedSongsRequest.httpMethod = "POST"
+        sharedSongsRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
+        sharedSongsRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        sharedSongsRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        sharedSongsRequest.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        
+        do {
+            sharedSongsRequest.httpBody = try JSONSerialization.data(withJSONObject: sharedSongs)
+        } catch {
+            NSLog("\(debugId): ERROR - Failed to serialize shared_songs: \(error)")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: sharedSongsRequest) { [weak self] data, response, error in
+            guard let self = self else { return }
+            if let error = error {
+                NSLog("\(debugId): ERROR - Failed to create shared_songs: \(error.localizedDescription)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                NSLog("\(debugId): shared_songs API response status: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode == 201 || httpResponse.statusCode == 204 {
+                    NSLog("\(debugId): SUCCESS - Created shared_songs records")
+                    // Now create activities
+                    self.createActivities(senderId: senderId, title: title, artist: artist, artwork: artwork, accessToken: accessToken, anonKey: anonKey, supabaseUrl: supabaseUrl, debugId: debugId)
+                } else {
+                    if let data = data, let errorString = String(data: data, encoding: .utf8) {
+                        NSLog("\(debugId): ERROR - shared_songs response: \(errorString)")
+                    }
+                }
+            }
+        }.resume()
+    }
+    
+    private func createActivities(senderId: String, title: String, artist: String, artwork: String, accessToken: String, anonKey: String, supabaseUrl: String, debugId: String) {
+        // Create activity records for each friend
+        // ActivityService uses 'type' and 'actor_id' in queries/inserts
+        // Use 'song_shared' to match database CHECK constraint (allows: 'song_liked', 'song_shared', 'friend_request', 'friend_accepted')
+        // Activity feed handles both 'song_sent' and 'song_shared' for backwards compatibility
+        let activities = selectedFriendIds.map { friendId in
+            return [
+                "user_id": friendId, // Friend receives the activity
+                "type": "song_shared", // Use column name 'type' to match ActivityService, value 'song_shared' for database constraint
+                "actor_id": senderId, // Current user is the actor, use 'actor_id' to match ActivityService
+                "song_title": title,
+                "song_artist": artist,
+                "song_artwork": artwork,
+                "is_actionable": false,
+                "is_completed": false
+            ] as [String: Any]
+        }
+        
+        let activitiesUrl = "\(supabaseUrl)/rest/v1/activities"
+        guard let activitiesRequestUrl = URL(string: activitiesUrl) else {
+            NSLog("\(debugId): ERROR - Invalid activities URL")
+            return
+        }
+        
+        var activitiesRequest = URLRequest(url: activitiesRequestUrl)
+        activitiesRequest.httpMethod = "POST"
+        activitiesRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
+        activitiesRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        activitiesRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        activitiesRequest.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        
+        do {
+            activitiesRequest.httpBody = try JSONSerialization.data(withJSONObject: activities)
+        } catch {
+            NSLog("\(debugId): ERROR - Failed to serialize activities: \(error)")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: activitiesRequest) { data, response, error in
+            if let error = error {
+                NSLog("\(debugId): ERROR - Failed to create activities: \(error.localizedDescription)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                NSLog("\(debugId): activities API response status: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode == 201 || httpResponse.statusCode == 204 {
+                    NSLog("\(debugId): SUCCESS - Created activity records")
+                } else {
+                    if let data = data, let errorString = String(data: data, encoding: .utf8) {
+                        NSLog("\(debugId): ERROR - activities response: \(errorString)")
+                    }
+                }
+            }
+        }.resume()
+    }
+    
+    private func extractTrackId(from urlString: String) -> String {
+        let pattern = #"track/([a-zA-Z0-9]+)"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
+              let match = regex.firstMatch(in: urlString, options: [], range: NSRange(location: 0, length: urlString.utf16.count)),
+              match.numberOfRanges > 1,
+              let trackIdRange = Range(match.range(at: 1), in: urlString) else {
+            return urlString // Fallback to full URL if can't extract
+        }
+        return String(urlString[trackIdRange])
     }
     
     private func storeInAppGroup(urlString: String) {

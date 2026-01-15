@@ -73,14 +73,10 @@ export const MusicContentService = {
       accessToken = await this.getSpotifyAccessToken(userId);
     }
 
+    // If no user token, use Edge Function which doesn't require user authentication
     if (!accessToken) {
-      console.log("No Spotify access token available for user, using fallback");
-      // Return basic parsed info with better messaging when no token available
-      return {
-        success: false,
-        error:
-          "No Spotify access token - connect Spotify in Profile → Link Apps for full song details",
-      };
+      console.log("No Spotify access token available for user, using Edge Function fallback");
+      return await this.fetchSpotifyContentViaEdgeFunction(parsedLink);
     }
 
     const spotifyAPI = new SpotifyAPI(accessToken);
@@ -543,5 +539,76 @@ export const MusicContentService = {
       service: content.service,
       external_url: content.externalUrl,
     };
+  },
+
+  /**
+   * Fetch Spotify content via Edge Function (doesn't require user token)
+   */
+  async fetchSpotifyContentViaEdgeFunction(
+    parsedLink: ParsedMusicLink
+  ): Promise<FetchContentResult> {
+    try {
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      if (!supabaseUrl) {
+        return {
+          success: false,
+          error: "Supabase URL not configured",
+        };
+      }
+
+      const functionUrl = `${supabaseUrl}/functions/v1/process-music-link`;
+      const anonKey = process.env.EXPO_PUBLIC_SUPABASE_KEY;
+
+      if (!anonKey) {
+        return {
+          success: false,
+          error: "Supabase key not configured",
+        };
+      }
+
+      const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${anonKey}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
+          link: parsedLink.originalUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Edge Function error:", errorText);
+        return {
+          success: false,
+          error: "Failed to fetch song details",
+        };
+      }
+
+      const data = await response.json();
+
+      // Transform Edge Function response to MusicContent format
+      return {
+        success: true,
+        content: {
+          id: parsedLink.contentId || "",
+          title: data.title || "Unknown Song",
+          artist: data.artist || "Unknown Artist",
+          album: data.album || "",
+          artwork: data.artworkURL || "",
+          service: "spotify",
+          external_url: parsedLink.originalUrl,
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching via Edge Function:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch content",
+      };
+    }
   },
 };

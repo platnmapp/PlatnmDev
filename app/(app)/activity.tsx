@@ -159,6 +159,7 @@ export default function Activity() {
       case "song_disliked":
         return `Disliked your hit - ${activity.song_title}`;
       case "song_sent":
+      case "song_shared": // Handle both for backwards compatibility
         return `Shared "${activity.song_title}" with you`;
       default:
         return "Unknown activity";
