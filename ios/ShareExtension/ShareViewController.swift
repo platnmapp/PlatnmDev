@@ -559,10 +559,11 @@ class ShareViewController: UIViewController {
         let artwork = songArtwork ?? ""
         
         NSLog("\(debugId): Creating share records - Track: \(trackId), Title: \(title), Artist: \(artist)")
+        NSLog("\(debugId): Creating shared_songs for \(selectedFriendIds.count) friends")
         
         // Create shared_songs records for each friend
         let sharedSongs = selectedFriendIds.map { friendId in
-            return [
+            let record: [String: Any] = [
                 "sender_id": senderId,
                 "receiver_id": friendId,
                 "song_id": trackId,
@@ -570,8 +571,12 @@ class ShareViewController: UIViewController {
                 "song_artist": artist,
                 "song_artwork": artwork,
                 "service": "spotify",
-                "external_url": urlString
-            ] as [String: Any]
+                "external_url": urlString,
+                "is_queued": false,  // Not queued when sharing to a friend
+                "liked": NSNull()    // Explicitly set to NULL (unreacted) so it appears in inbox
+            ]
+            NSLog("\(debugId): Creating shared_song record for friend \(friendId) with is_queued: false, liked: NULL")
+            return record
         }
         
         let sharedSongsUrl = "\(supabaseUrl)/rest/v1/shared_songs"
@@ -585,7 +590,7 @@ class ShareViewController: UIViewController {
         sharedSongsRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
         sharedSongsRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         sharedSongsRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        sharedSongsRequest.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        sharedSongsRequest.setValue("return=representation", forHTTPHeaderField: "Prefer")  // Return created records for verification
         
         do {
             sharedSongsRequest.httpBody = try JSONSerialization.data(withJSONObject: sharedSongs)
@@ -605,12 +610,22 @@ class ShareViewController: UIViewController {
                 NSLog("\(debugId): shared_songs API response status: \(httpResponse.statusCode)")
                 
                 if httpResponse.statusCode == 201 || httpResponse.statusCode == 204 {
-                    NSLog("\(debugId): SUCCESS - Created shared_songs records")
+                    // Parse response to verify created records
+                    if let data = data,
+                       let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                       !json.isEmpty {
+                        let createdRecord = json[0]
+                        NSLog("\(debugId): SUCCESS - Created shared_songs record with id: \(createdRecord["id"] ?? "unknown"), is_queued: \(createdRecord["is_queued"] ?? "unknown"), liked: \(createdRecord["liked"] ?? "unknown")")
+                    } else {
+                        NSLog("\(debugId): SUCCESS - Created shared_songs records (no response data)")
+                    }
                     // Now create activities
                     self.createActivities(senderId: senderId, title: title, artist: artist, artwork: artwork, accessToken: accessToken, anonKey: anonKey, supabaseUrl: supabaseUrl, debugId: debugId)
                 } else {
                     if let data = data, let errorString = String(data: data, encoding: .utf8) {
-                        NSLog("\(debugId): ERROR - shared_songs response: \(errorString)")
+                        NSLog("\(debugId): ERROR - shared_songs response (status \(httpResponse.statusCode)): \(errorString)")
+                    } else {
+                        NSLog("\(debugId): ERROR - shared_songs request failed with status \(httpResponse.statusCode) and no error message")
                     }
                 }
             }
@@ -618,21 +633,25 @@ class ShareViewController: UIViewController {
     }
     
     private func createActivities(senderId: String, title: String, artist: String, artwork: String, accessToken: String, anonKey: String, supabaseUrl: String, debugId: String) {
+        NSLog("\(debugId): ====== createActivities CALLED ======")
+        NSLog("\(debugId): Creating activities for \(selectedFriendIds.count) friends")
+        
         // Create activity records for each friend
-        // ActivityService uses 'type' and 'actor_id' in queries/inserts
-        // Use 'song_shared' to match database CHECK constraint (allows: 'song_liked', 'song_shared', 'friend_request', 'friend_accepted')
-        // Activity feed handles both 'song_sent' and 'song_shared' for backwards compatibility
+        // Use 'song_sent' to match database CHECK constraint (allows: 'friend_request', 'friend_accepted', 'song_liked', 'song_disliked', 'song_sent')
+        // ActivityService handles both 'song_sent' and 'song_shared' for backwards compatibility
         let activities = selectedFriendIds.map { friendId in
-            return [
+            let activity: [String: Any] = [
                 "user_id": friendId, // Friend receives the activity
-                "type": "song_shared", // Use column name 'type' to match ActivityService, value 'song_shared' for database constraint
-                "actor_id": senderId, // Current user is the actor, use 'actor_id' to match ActivityService
+                "type": "song_sent", // Use 'song_sent' to match CHECK constraint
+                "actor_id": senderId, // Current user is the actor
                 "song_title": title,
                 "song_artist": artist,
                 "song_artwork": artwork,
                 "is_actionable": false,
                 "is_completed": false
-            ] as [String: Any]
+            ]
+            NSLog("\(debugId): Creating activity for friend \(friendId) with type: song_sent")
+            return activity
         }
         
         let activitiesUrl = "\(supabaseUrl)/rest/v1/activities"
@@ -646,10 +665,12 @@ class ShareViewController: UIViewController {
         activitiesRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
         activitiesRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         activitiesRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        activitiesRequest.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        activitiesRequest.setValue("return=representation", forHTTPHeaderField: "Prefer")  // Return created records for verification
         
         do {
-            activitiesRequest.httpBody = try JSONSerialization.data(withJSONObject: activities)
+            let jsonData = try JSONSerialization.data(withJSONObject: activities)
+            NSLog("\(debugId): Serialized \(activities.count) activities, payload size: \(jsonData.count) bytes")
+            activitiesRequest.httpBody = jsonData
         } catch {
             NSLog("\(debugId): ERROR - Failed to serialize activities: \(error)")
             return
@@ -665,10 +686,22 @@ class ShareViewController: UIViewController {
                 NSLog("\(debugId): activities API response status: \(httpResponse.statusCode)")
                 
                 if httpResponse.statusCode == 201 || httpResponse.statusCode == 204 {
-                    NSLog("\(debugId): SUCCESS - Created activity records")
+                    // Parse response to verify created records
+                    if let data = data,
+                       let json = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                       !json.isEmpty {
+                        NSLog("\(debugId): SUCCESS - Created \(json.count) activity records")
+                        for (index, activity) in json.enumerated() {
+                            NSLog("\(debugId): Activity \(index + 1): id=\(activity["id"] ?? "unknown"), type=\(activity["type"] ?? "unknown"), user_id=\(activity["user_id"] ?? "unknown"), actor_id=\(activity["actor_id"] ?? "unknown")")
+                        }
+                    } else {
+                        NSLog("\(debugId): SUCCESS - Created activity records (no response data)")
+                    }
                 } else {
                     if let data = data, let errorString = String(data: data, encoding: .utf8) {
-                        NSLog("\(debugId): ERROR - activities response: \(errorString)")
+                        NSLog("\(debugId): ERROR - activities response (status \(httpResponse.statusCode)): \(errorString)")
+                    } else {
+                        NSLog("\(debugId): ERROR - activities request failed with status \(httpResponse.statusCode) and no error message")
                     }
                 }
             }

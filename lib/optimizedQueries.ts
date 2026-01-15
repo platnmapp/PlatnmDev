@@ -67,7 +67,9 @@ export class OptimizedQueriesService {
         }
       }
 
-      let query = supabase
+      // PostgREST doesn't easily support OR for same column with different operators
+      // Split into two queries: is_queued = false and is_queued IS NULL
+      let query1 = supabase
         .from("shared_songs")
         .select(`
           id,
@@ -80,6 +82,8 @@ export class OptimizedQueriesService {
           service,
           created_at,
           liked,
+          is_queued,
+          receiver_id,
           sender:sender_id(
             id,
             first_name,
@@ -91,18 +95,84 @@ export class OptimizedQueriesService {
         .eq("receiver_id", userId)
         .is("liked", null)
         .eq("is_queued", false)
-        .order("created_at", { ascending: false })
-        .limit(this.PAGE_SIZE + 1); // Fetch one extra to check if there are more
+        .order("created_at", { ascending: false });
 
-      // Apply cursor if provided
+      let query2 = supabase
+        .from("shared_songs")
+        .select(`
+          id,
+          song_id,
+          song_title,
+          song_artist,
+          song_album,
+          song_artwork,
+          external_url,
+          service,
+          created_at,
+          liked,
+          is_queued,
+          receiver_id,
+          sender:sender_id(
+            id,
+            first_name,
+            last_name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq("receiver_id", userId)
+        .is("liked", null)
+        .is("is_queued", null)  // Handle NULL for backwards compatibility
+        .order("created_at", { ascending: false });
+
+      // Apply cursor if provided to both queries
       if (cursor) {
-        query = query.lt("created_at", cursor);
+        query1 = query1.lt("created_at", cursor);
+        query2 = query2.lt("created_at", cursor);
       }
 
-      const { data, error } = await query;
+      // Execute both queries in parallel
+      const [result1, result2] = await Promise.all([
+        query1.limit(this.PAGE_SIZE + 1),
+        query2.limit(this.PAGE_SIZE + 1)
+      ]);
+
+      // Combine and deduplicate results
+      const allSongs = [
+        ...(result1.data || []),
+        ...(result2.data || []).filter(s => !result1.data?.some(r => r.id === s.id))
+      ];
+
+      // Sort by created_at descending and limit
+      const sortedSongs = allSongs
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, this.PAGE_SIZE + 1);
+
+      const error = result1.error || result2.error;
+      const data = sortedSongs;
 
       if (error) {
-        console.error("Error fetching inbox songs:", error);
+        console.error("INBOX_SONGS_DEBUG: Error fetching inbox songs:", error);
+        return { songs: [], hasMore: false };
+      }
+
+      console.log("INBOX_SONGS_DEBUG: Fetched inbox songs:", {
+        query1Count: result1.data?.length || 0,
+        query2Count: result2.data?.length || 0,
+        combinedCount: data?.length || 0,
+        userId,
+        hasCursor: !!cursor,
+        songs: data?.map(s => ({
+          id: s.id,
+          song_title: s.song_title,
+          is_queued: (s as any).is_queued,
+          liked: s.liked,
+          receiver_id: (s as any).receiver_id
+        }))
+      });
+
+      if (error) {
+        console.error("INBOX_SONGS_DEBUG: Error fetching inbox songs:", error);
         return { songs: [], hasMore: false };
       }
 

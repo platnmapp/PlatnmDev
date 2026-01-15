@@ -1,0 +1,573 @@
+================================================================================
+FIXED: Song Sharing Activities Not Appearing in Activity Feed
+================================================================================
+
+WHAT WE WERE TRYING TO DO:
+================================================================================
+
+We wanted users to see their own song shares in the Activity feed. When a user 
+shares a song with a friend, they should see "You shared '[song name]' with 
+[friend name]" in their Activity tab. This provides confirmation that the share 
+was successful and allows users to track what they've shared.
+
+--------------------------------------------------------------------------------
+
+WHY IT FAILED MULTIPLE TIMES:
+================================================================================
+
+FAILURE #1: Activities Only Querying Recipients
+------------------------------------------------
+- PROBLEM: The `getUserActivities` function only queried activities where 
+  `user_id = userId` (activities where the user is the recipient).
+- RESULT: When a user shared a song, the activity was created with:
+  - `user_id` = friend's ID (friend receives the activity)
+  - `actor_id` = current user's ID (current user is the sender)
+  The activity existed, but the query never fetched it because it only looked 
+  for activities where the user was the recipient, not the actor.
+
+FAILURE #2: Filtering Out Own Activities
+-----------------------------------------
+- PROBLEM: The `renderActivityItem` function had this code:
+  ```
+  if (activity.actor.id === user?.id) {
+    return null; // Don't render anything if it's the same user
+  }
+  ```
+- RESULT: Even if we had fetched activities where the user is the actor, they 
+  would have been filtered out before rendering. This filter was intended to 
+  prevent users from seeing their own likes/dislikes/friend requests, but it 
+  also blocked song shares.
+
+FAILURE #3: Wrong Query Syntax
+-------------------------------
+- PROBLEM: When we first added Query2 to fetch activities where `actor_id = userId`, 
+  we used `.or("type.eq.song_sent,type.eq.song_shared")` which is not valid 
+  PostgREST syntax.
+- RESULT: The query failed silently or returned 0 results. We later fixed this 
+  to use `.in("type", ["song_sent", "song_shared"])` which is the correct 
+  PostgREST syntax.
+
+FAILURE #4: Row Level Security (RLS) Policy Blocking Queries
+------------------------------------------------------------
+- PROBLEM: The SELECT policy on the `activities` table only allowed:
+  ```
+  USING (auth.uid() = user_id)
+  ```
+  This means users could only SELECT activities where they are the recipient 
+  (`user_id`). When Query2 tried to fetch activities where `actor_id = userId`, 
+  RLS blocked it because the policy didn't allow reading activities where the 
+  user is the actor.
+- RESULT: Even though the activity was successfully created (INSERT worked 
+  because we had an INSERT policy allowing `auth.uid() = actor_id`), Query2 
+  returned 0 results because RLS prevented reading those records.
+
+FAILURE #5: Not Requesting Data Back from Insert
+-------------------------------------------------
+- PROBLEM: The insert used default `return=minimal` which doesn't return the 
+  created records. We couldn't verify the activity was actually created.
+- RESULT: We saw `error: null` (success) but `dataCount: undefined`, making 
+  it hard to debug if the insert actually worked.
+
+FAILURE #6: Schema Mismatch Issues (Earlier)
+---------------------------------------------
+- PROBLEM: The code was trying to insert columns that didn't exist in the 
+  database (`song_album`, `song_id`, `is_actionable`, `is_completed`, etc.) 
+  or using wrong column names (`actor_id` vs `related_user_id`, `type` vs 
+  `activity_type`).
+- RESULT: Multiple constraint violation errors. We fixed this by aligning the 
+  code with the actual database schema.
+
+FAILURE #7: Missing INSERT Policy
+----------------------------------
+- PROBLEM: Initially, there was no INSERT policy on the `activities` table, 
+  so users couldn't create activities at all.
+- RESULT: RLS error: "new row violates row-level security policy for table 
+  'activities'". We fixed this by creating an INSERT policy.
+
+FAILURE #8: Check Constraint Violation
+---------------------------------------
+- PROBLEM: The database CHECK constraint on `type` column only allowed:
+  `('friend_request', 'friend_accepted', 'song_liked', 'song_disliked', 'song_sent')`
+  But we were trying to insert `"song_shared"` which wasn't in the allowed list.
+- RESULT: Error: "new row violates check constraint 'activities_type_check'". 
+  We fixed this by using `"song_sent"` for the `type` column (new schema) 
+  while keeping `"song_shared"` for the `activity_type` column (old schema).
+
+FAILURE #9: Completed Friend Requests Showing
+----------------------------------------------
+- PROBLEM: Completed friend requests were showing in the activity feed even 
+  though they shouldn't.
+- RESULT: Users saw old, already-accepted friend requests cluttering their 
+  feed. We fixed this by filtering out completed friend requests in the 
+  render function.
+
+--------------------------------------------------------------------------------
+
+THE CORRECT FIX (IN EXTREME DETAIL):
+================================================================================
+
+The solution required changes across multiple layers: database policies, query 
+logic, and UI filtering. Here's the complete fix broken down by component:
+
+PART 1: DATABASE ROW LEVEL SECURITY (RLS) POLICY FIX
+-----------------------------------------------------
+FILE: database_fix_activities_select_policy.sql
+
+PROBLEM:
+The SELECT policy only allowed users to see activities where `user_id = auth.uid()`, 
+meaning they could only see activities where they are the RECIPIENT. When we 
+tried to query activities where `actor_id = userId` (activities where the user 
+is the SENDER/ACTOR), RLS blocked those queries.
+
+SOLUTION:
+We updated the SELECT policy to allow users to see BOTH:
+1. Activities where they are the recipient: `auth.uid() = user_id`
+2. Activities where they are the actor (but only for song shares): 
+   `auth.uid() = actor_id AND type IN ('song_sent', 'song_shared')`
+
+SQL:
+```
+DROP POLICY IF EXISTS "Users can view own activities" ON activities;
+
+CREATE POLICY "Users can view own activities" ON activities 
+  FOR SELECT 
+  USING (
+    auth.uid() = user_id 
+    OR (auth.uid() = actor_id AND type IN ('song_sent', 'song_shared'))
+  );
+```
+
+WHY THIS WORKS:
+- The `OR` condition allows either scenario
+- The second condition includes a `type` filter to prevent users from seeing 
+  their own likes/dislikes/friend requests (which we don't want them to see)
+- Only song shares where the user is the actor will be visible
+- This allows Query2 in the code to successfully fetch activities where 
+  `actor_id = userId` and `type IN ('song_sent', 'song_shared')`
+
+PART 2: ACTIVITY SERVICE QUERY LOGIC
+-------------------------------------
+FILE: lib/activityService.ts
+
+PROBLEM:
+The `getUserActivities` function only queried activities where `user_id = userId`. 
+We needed to also fetch activities where the user is the actor (for song shares).
+
+SOLUTION:
+We split the query into two separate queries and combine the results:
+
+QUERY 1 (Existing):
+```
+.eq("user_id", userId)
+```
+Fetches activities where the user is the recipient (what they received).
+
+QUERY 2 (New):
+```
+.eq("actor_id", userId)
+.in("type", ["song_sent", "song_shared"])
+```
+Fetches activities where the user is the actor and type is song_sent/song_shared 
+(what they sent).
+
+CODE:
+```typescript
+// Query 1: Activities where user is recipient
+let query1 = supabase
+  .from("activities")
+  .select(...)
+  .eq("user_id", userId)
+  .order("created_at", { ascending: false });
+
+// Query 2: Activities where user is actor and type is song_sent/song_shared
+let query2 = supabase
+  .from("activities")
+  .select(...)
+  .eq("actor_id", userId)
+  .in("type", ["song_sent", "song_shared"])
+  .order("created_at", { ascending: false });
+
+// Execute both queries
+const [result1, result2] = await Promise.all([query1, query2]);
+
+// Combine and deduplicate results
+const allActivities = [
+  ...(result1.data || []),
+  ...(result2.data || []).filter(a => !result1.data?.some(b => b.id === a.id))
+];
+
+// Sort by created_at descending and limit
+const sortedActivities = allActivities
+  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  .slice(0, PAGE_SIZE + 1);
+```
+
+WHY THIS WORKS:
+- We execute both queries in parallel using `Promise.all()` for performance
+- We deduplicate results (in case an activity matches both queries - though it shouldn't)
+- We combine and sort all activities together
+- The `.in()` syntax is correct PostgREST syntax for matching multiple values
+- This ensures both received AND sent song shares appear in the activity feed
+
+PART 3: FETCHING RECIPIENT PROFILES
+------------------------------------
+FILE: lib/activityService.ts
+
+PROBLEM:
+When displaying "You shared '[song]' with [friend name]", we need the friend's 
+profile information (name, avatar, etc.) to display their name. The activity 
+only has `user_id` (the friend's ID), but we need to fetch their profile.
+
+SOLUTION:
+We fetch recipient profiles for activities where the user is the actor:
+
+```typescript
+// For activities where user is the actor, also fetch recipient profiles
+const recipientIds = [
+  ...new Set(
+    activities
+      .filter(a => a.actor_id === userId && (a.type === "song_sent" || a.type === "song_shared"))
+      .map((activity) => activity.user_id)
+  ),
+];
+
+const allProfileIds = [...new Set([...actorIds, ...recipientIds])];
+
+const { data: profiles } = await supabase
+  .from("profiles")
+  .select("id, first_name, last_name, username, avatar_url")
+  .in("id", allProfileIds);
+
+// Store recipient info in the Activity object
+recipient: recipient ? {
+  id: recipient.id,
+  first_name: recipient.first_name,
+  last_name: recipient.last_name,
+  username: recipient.username,
+  avatar_url: recipient.avatar_url,
+} : undefined,
+```
+
+WHY THIS WORKS:
+- We identify activities where the user is the actor and extract the `user_id` 
+  (which is the friend/recipient)
+- We fetch all profiles (both actors and recipients) in a single query
+- We store the recipient profile in the Activity object so the UI can display 
+  the friend's name
+
+PART 4: ACTIVITY INTERFACE UPDATE
+----------------------------------
+FILE: lib/activityService.ts
+
+PROBLEM:
+The `Activity` interface didn't have a field for recipient information.
+
+SOLUTION:
+Added optional `recipient` field:
+
+```typescript
+export interface Activity {
+  // ... existing fields ...
+  actor: {
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    avatar_url?: string;
+  };
+  recipient?: {
+    // For activities where user is actor (they shared), this is the friend who received it
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    avatar_url?: string;
+  };
+}
+```
+
+WHY THIS WORKS:
+- Makes recipient information available to the UI
+- Optional field so it doesn't break existing code
+- Only populated for activities where the user is the actor
+
+PART 5: UI RENDERING LOGIC
+---------------------------
+FILE: app/(app)/activity.tsx
+
+PROBLEM:
+The render function was filtering out ALL activities where `actor.id === user?.id`, 
+including song shares.
+
+SOLUTION:
+Modified the filter to allow song shares where the user is the actor:
+
+```typescript
+const renderActivityItem = (activity: ActivityItem, index: number) => {
+  // Allow song_sent activities to show even when user is the actor
+  const isOwnSongShare = activity.actor.id === user?.id && 
+    (activity.type === "song_sent" || activity.type === "song_shared");
+  
+  // Filter out other activities where user is the actor 
+  // (they shouldn't see their own likes/dislikes/friend requests)
+  if (activity.actor.id === user?.id && !isOwnSongShare) {
+    return null;
+  }
+
+  // Filter out completed friend requests
+  if (activity.type === "friend_request" && activity.is_completed) {
+    return null;
+  }
+
+  // ... rest of rendering logic ...
+};
+```
+
+WHY THIS WORKS:
+- We check if the activity is a song share where the user is the actor
+- We only filter out activities where the user is the actor IF it's NOT a song share
+- This allows song shares to be displayed while hiding likes/dislikes/friend requests
+
+PART 6: DISPLAY TEXT LOGIC
+---------------------------
+FILE: app/(app)/activity.tsx
+
+PROBLEM:
+The `getActivityText` function always showed "Shared '[song]' with you" even when 
+the user was the sender.
+
+SOLUTION:
+Modified to show different text based on whether the user is the actor or recipient:
+
+```typescript
+case "song_sent":
+case "song_shared":
+  // If user is the actor, show "You shared with [friend]"
+  // Otherwise show "Shared with you"
+  if (activity.actor.id === user?.id && activity.recipient) {
+    // Get recipient name
+    const recipientName = activity.recipient.first_name && activity.recipient.last_name
+      ? `${activity.recipient.first_name} ${activity.recipient.last_name}`
+      : activity.recipient.first_name || activity.recipient.username || "a friend";
+    return `You shared "${activity.song_title}" with ${recipientName}`;
+  }
+  return `Shared "${activity.song_title}" with you`;
+```
+
+WHY THIS WORKS:
+- Checks if the current user is the actor (sender)
+- If yes, formats the message as "You shared '[song]' with [friend name]"
+- If no, formats it as "Shared '[song]' with you"
+- Uses the recipient profile information we fetched earlier to display the friend's name
+
+PART 7: VERIFYING INSERT SUCCESS
+---------------------------------
+FILE: lib/shareExtensionService.ts
+
+PROBLEM:
+The insert was using default `return=minimal` which doesn't return the created 
+records, making it hard to verify the activity was actually created.
+
+SOLUTION:
+Added `.select()` to the insert to get the created records back:
+
+```typescript
+const { error: activitiesError, data: activitiesData } = await supabase
+  .from("activities")
+  .insert(activities)
+  .select(); // Request data back to verify insertion
+
+console.log('activities insert result:', {
+  error: activitiesError,
+  dataCount: activitiesData?.length,
+  errorDetails: activitiesError ? JSON.stringify(activitiesError) : null
+});
+
+if (!activitiesError && activitiesData) {
+  console.log('✅ Activities created successfully:', activitiesData);
+  console.log('✅ Created activity IDs:', activitiesData.map(a => ({
+    id: a.id,
+    actor_id: a.actor_id,
+    type: a.type,
+    user_id: a.user_id
+  })));
+}
+```
+
+WHY THIS WORKS:
+- `.select()` tells Supabase to return the inserted records
+- We can verify the activity was created and log its ID for debugging
+- If the insert fails, we get detailed error information
+
+PART 8: DATABASE INSERT POLICY
+-------------------------------
+FILE: database_add_activities_insert_policy.sql
+
+PROBLEM:
+Initially, there was no INSERT policy on the `activities` table, so users 
+couldn't create activities at all.
+
+SOLUTION:
+Created an INSERT policy that allows users to create activities where they 
+are the actor:
+
+```sql
+DROP POLICY IF EXISTS "Users can create activities" ON activities;
+
+CREATE POLICY "Users can create activities" ON activities 
+  FOR INSERT 
+  WITH CHECK (auth.uid() = actor_id);
+```
+
+WHY THIS WORKS:
+- Allows INSERT operations where the authenticated user's ID matches the `actor_id`
+- This allows users to create activities when they share songs, like songs, 
+  send friend requests, etc.
+- The policy ensures users can only create activities where they are the actor 
+  (they can't create activities on behalf of other users)
+
+PART 9: SCHEMA COMPATIBILITY
+-----------------------------
+FILE: lib/shareExtensionService.ts
+
+PROBLEM:
+The database has both old schema columns (`activity_type`, `related_user_id`) 
+and new schema columns (`type`, `actor_id`). We needed to insert data that 
+satisfies both schemas.
+
+SOLUTION:
+Insert data into both old and new schema columns:
+
+```typescript
+const activities = friendIds
+  .filter((friendId) => friendId !== senderId)
+  .map((friendId) => ({
+    user_id: friendId, // Friend receives the activity
+    actor_id: senderId, // Current user is the actor (new schema)
+    related_user_id: senderId, // Current user is the actor (old schema - compatibility)
+    type: "song_sent", // New schema column - matches CHECK constraint
+    activity_type: "song_shared", // Old schema column - matches old CHECK constraint
+    song_title: song.title,
+    song_artist: song.artist,
+    song_artwork: song.artwork || null,
+    is_actionable: false,
+    is_completed: false,
+  }));
+```
+
+WHY THIS WORKS:
+- Satisfies both old and new schema constraints
+- The new schema uses `"song_sent"` (matches the CHECK constraint on `type` column)
+- The old schema uses `"song_shared"` (matches the CHECK constraint on `activity_type` column)
+- Ensures compatibility during the migration period
+
+--------------------------------------------------------------------------------
+
+SUMMARY OF ALL CHANGES:
+================================================================================
+
+1. DATABASE POLICIES:
+   - Added INSERT policy: Users can create activities where `auth.uid() = actor_id`
+   - Updated SELECT policy: Users can see activities where they are recipient OR 
+     where they are actor (for song shares only)
+
+2. QUERY LOGIC:
+   - Split `getUserActivities` into two queries (recipient + actor)
+   - Combine and deduplicate results
+   - Fetch recipient profiles for display
+
+3. UI LOGIC:
+   - Updated filter to allow song shares where user is actor
+   - Updated display text to show "You shared with [friend]" vs "Shared with you"
+   - Filter out completed friend requests
+
+4. SCHEMA COMPATIBILITY:
+   - Insert into both old and new schema columns
+   - Use correct values for each schema's CHECK constraints
+
+5. DEBUGGING:
+   - Added `.select()` to inserts to verify creation
+   - Added comprehensive logging throughout the flow
+
+--------------------------------------------------------------------------------
+
+KEY TAKEAWAYS:
+================================================================================
+
+1. RLS POLICIES MUST MATCH QUERY PATTERNS:
+   - If you query for records where `actor_id = userId`, your SELECT policy 
+     must allow `auth.uid() = actor_id`
+   - The policy must explicitly allow what you're querying for
+
+2. POSTGREST SYNTAX MATTERS:
+   - Use `.in("column", ["value1", "value2"])` not `.or("column.eq.value1,column.eq.value2")`
+   - Always verify query syntax matches PostgREST documentation
+
+3. UI FILTERING MUST BE SELECTIVE:
+   - Don't filter out ALL activities where user is actor
+   - Allow specific types (like song shares) while filtering others (likes/dislikes)
+
+4. VERIFY DATABASE OPERATIONS:
+   - Use `.select()` on inserts to verify they succeeded
+   - Check returned data, not just error status
+
+5. SCHEMA MIGRATIONS REQUIRE COMPATIBILITY:
+   - During migration periods, support both old and new column names
+   - Ensure values satisfy both old and new CHECK constraints
+
+6. DEBUG WITH COMPREHENSIVE LOGGING:
+   - Log query results (counts, data)
+   - Log filter decisions
+   - Log transformation steps
+   - This helps identify where the flow breaks
+
+--------------------------------------------------------------------------------
+
+FILES MODIFIED:
+================================================================================
+
+1. database_fix_activities_select_policy.sql (NEW)
+   - Updated SELECT policy to allow viewing activities where user is actor
+
+2. database_add_activities_insert_policy.sql (NEW)
+   - Added INSERT policy to allow creating activities
+
+3. lib/activityService.ts
+   - Updated `getUserActivities` to query both recipient and actor activities
+   - Added recipient profile fetching
+   - Updated Activity interface to include recipient field
+
+4. app/(app)/activity.tsx
+   - Updated `renderActivityItem` to allow song shares where user is actor
+   - Updated `getActivityText` to show different text for sender vs recipient
+   - Added filter for completed friend requests
+
+5. lib/shareExtensionService.ts
+   - Fixed schema compatibility (insert into both old and new columns)
+   - Added `.select()` to verify insert success
+   - Added comprehensive logging
+
+--------------------------------------------------------------------------------
+
+TESTING THE FIX:
+================================================================================
+
+To verify the fix works:
+1. Share a song with a friend
+2. Navigate to Activity tab
+3. You should see: "You shared '[song name]' with [friend name]"
+4. Check console logs for:
+   - "Activities created successfully" with activity data
+   - Query results showing query2Count > 0
+   - Transformed activities including your song share
+
+If it doesn't work, check:
+1. Did you run the SQL to update the SELECT policy?
+2. Are there any RLS errors in the console?
+3. Are the query logs showing query2Count > 0?
+4. Is the activity being filtered out in renderActivityItem?
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+
