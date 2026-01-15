@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		2F4C8C322F18815200C0618E /* SharedUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4C8C312F18815200C0618E /* SharedUserDefaults.swift */; };
+		2F4C8C342F1881B600C0618E /* SharedUserDefaults.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F4C8C332F1881B600C0618E /* SharedUserDefaults.m */; };
 		2FB434F92F09C2CA007D5A2A /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2FB434EF2F09C2C9007D5A2A /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		438473C0E0047F2814595BBE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2D305D112CB33E2DCE0CB06E /* PrivacyInfo.xcprivacy */; };
@@ -48,6 +50,8 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = platnm/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = platnm/Info.plist; sourceTree = "<group>"; };
 		2D305D112CB33E2DCE0CB06E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = platnm/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2F4C8C312F18815200C0618E /* SharedUserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedUserDefaults.swift; path = platnm/SharedUserDefaults.swift; sourceTree = "<group>"; };
+		2F4C8C332F1881B600C0618E /* SharedUserDefaults.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SharedUserDefaults.m; path = platnm/SharedUserDefaults.m; sourceTree = "<group>"; };
 		2FB434EF2F09C2C9007D5A2A /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4EB8F90ACC69C0AA6F2E056A /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-platnm/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = platnm/SplashScreen.storyboard; sourceTree = "<group>"; };
@@ -96,6 +100,8 @@
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
 				F11748442D0722820044C1D9 /* platnm-Bridging-Header.h */,
+				2F4C8C332F1881B600C0618E /* SharedUserDefaults.m */,
+				2F4C8C312F18815200C0618E /* SharedUserDefaults.swift */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -440,6 +446,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				2F4C8C342F1881B600C0618E /* SharedUserDefaults.m in Sources */,
+				2F4C8C322F18815200C0618E /* SharedUserDefaults.swift in Sources */,
 				85473DC51BB3AF6077C2677B /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

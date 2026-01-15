@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { supabase } from "../lib/supabase";
 
 interface Props {
   children: ReactNode;
@@ -31,14 +32,44 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    
+    // Handle refresh token errors by clearing the session
+    const errorMessage = error?.message || "";
+    const isRefreshTokenError = 
+      errorMessage.includes("Invalid Refresh Token") ||
+      errorMessage.includes("Refresh Token Not Found") ||
+      errorMessage.includes("refresh_token_not_found");
+    
+    if (isRefreshTokenError) {
+      console.log("🔄 Refresh token error detected - clearing session");
+      // Clear session asynchronously (don't await in componentDidCatch)
+      supabase.auth.signOut().catch((signOutError) => {
+        console.error("Error signing out:", signOutError);
+      });
+    }
+    
     this.setState({
       error,
       errorInfo,
     });
   }
 
+  handleReset = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+    });
+  };
+
   render() {
     if (this.state.hasError) {
+      const errorMessage = this.state.error?.message || "";
+      const isRefreshTokenError = 
+        errorMessage.includes("Invalid Refresh Token") ||
+        errorMessage.includes("Refresh Token Not Found") ||
+        errorMessage.includes("refresh_token_not_found");
+      
       return (
         <View
           style={{
@@ -56,18 +87,33 @@ export class ErrorBoundary extends Component<Props, State> {
               marginBottom: 20,
             }}
           >
-            Something went wrong
+            {isRefreshTokenError ? "Session Expired" : "Something went wrong"}
           </Text>
           <ScrollView>
             <Text style={{ color: "#fff", fontSize: 16, marginBottom: 10 }}>
-              {this.state.error?.toString()}
+              {isRefreshTokenError 
+                ? "Your session has expired. Please sign in again."
+                : this.state.error?.toString()}
             </Text>
-            {this.state.errorInfo && (
+            {!isRefreshTokenError && this.state.errorInfo && (
               <Text style={{ color: "#888", fontSize: 12, marginTop: 10 }}>
                 {this.state.errorInfo.componentStack}
               </Text>
             )}
           </ScrollView>
+          <TouchableOpacity
+            onPress={this.handleReset}
+            style={{
+              backgroundColor: "#007AFF",
+              padding: 15,
+              borderRadius: 8,
+              marginTop: 20,
+            }}
+          >
+            <Text style={{ color: "#fff", fontSize: 16, textAlign: "center" }}>
+              {isRefreshTokenError ? "Go to Sign In" : "Try Again"}
+            </Text>
+          </TouchableOpacity>
         </View>
       );
     }

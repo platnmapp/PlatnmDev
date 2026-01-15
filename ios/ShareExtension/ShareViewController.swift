@@ -128,6 +128,9 @@ class ShareViewController: UIViewController {
                 self.dismissExtension()
             }
         }
+        
+        // Load friends in parallel
+        loadFriends()
     }
     
     private func setupNavigationBar() {
@@ -536,6 +539,323 @@ class ShareViewController: UIViewController {
         extensionContext.completeRequest(returningItems: [], completionHandler: { (expired) in
             NSLog("\(identifier): Extension completed - returning to Spotify")
         })
+    }
+    
+    private func loadFriends() {
+        let debugId = "share_with_platnm_friends"
+        NSLog("\(debugId): ====== loadFriends CALLED ======")
+        writeLogToFile("\(debugId): ====== loadFriends CALLED ======")
+        
+        // Get user ID from App Group session data
+        let appGroupId = "group.com.platnm.5a1fixcuqweopqweopqwieopwqieopqwieoiqwopieopqiwopeiqwpoeioqwiepoqiwjdnaskncklnsdlfnlkas9635.app"
+        NSLog("\(debugId): Attempting to access App Group: \(appGroupId)")
+        writeLogToFile("\(debugId): Attempting to access App Group: \(appGroupId)")
+        
+        guard let sharedDefaults = UserDefaults(suiteName: appGroupId) else {
+            NSLog("\(debugId): ERROR - Could not access App Group UserDefaults")
+            writeLogToFile("\(debugId): ERROR - Could not access App Group UserDefaults")
+            return
+        }
+        
+        NSLog("\(debugId): Successfully accessed App Group UserDefaults")
+        writeLogToFile("\(debugId): Successfully accessed App Group UserDefaults")
+        
+        guard let sessionDataString = sharedDefaults.string(forKey: "sessionData") else {
+            NSLog("\(debugId): ERROR - No sessionData found in App Group")
+            writeLogToFile("\(debugId): ERROR - No sessionData found in App Group")
+            // Log all keys for debugging
+            let allKeys = sharedDefaults.dictionaryRepresentation().keys
+            NSLog("\(debugId): Available keys in App Group: \(Array(allKeys))")
+            writeLogToFile("\(debugId): Available keys in App Group: \(Array(allKeys))")
+            return
+        }
+        
+        NSLog("\(debugId): Found sessionData string (length: \(sessionDataString.count))")
+        writeLogToFile("\(debugId): Found sessionData string (length: \(sessionDataString.count))")
+        
+        guard let sessionData = sessionDataString.data(using: .utf8) else {
+            NSLog("\(debugId): ERROR - Could not convert sessionData string to Data")
+            writeLogToFile("\(debugId): ERROR - Could not convert sessionData string to Data")
+            return
+        }
+        
+        guard let sessionJson = try? JSONSerialization.jsonObject(with: sessionData) as? [String: Any] else {
+            NSLog("\(debugId): ERROR - Could not parse sessionData as JSON")
+            writeLogToFile("\(debugId): ERROR - Could not parse sessionData as JSON")
+            return
+        }
+        
+        NSLog("\(debugId): Successfully parsed sessionData JSON")
+        writeLogToFile("\(debugId): Successfully parsed sessionData JSON")
+        NSLog("\(debugId): Session JSON keys: \(Array(sessionJson.keys))")
+        writeLogToFile("\(debugId): Session JSON keys: \(Array(sessionJson.keys))")
+        
+        guard let userId = sessionJson["user_id"] as? String else {
+            NSLog("\(debugId): ERROR - Could not extract user_id from session JSON")
+            writeLogToFile("\(debugId): ERROR - Could not extract user_id from session JSON")
+            NSLog("\(debugId): Session JSON contents: \(sessionJson)")
+            writeLogToFile("\(debugId): Session JSON contents: \(sessionJson)")
+            return
+        }
+        
+        NSLog("\(debugId): SUCCESS - Got user ID: \(userId)")
+        writeLogToFile("\(debugId): SUCCESS - Got user ID: \(userId)")
+        
+        // Supabase configuration
+        let supabaseUrl = "https://uirmafqpkulwkkpyfmrj.supabase.co"
+        let anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpcm1hZnFwa3Vsd2trcHlmbXJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDEwMjMsImV4cCI6MjA4MDM3NzAyM30.OwH5ZtpySBNAXaV4-C1Am1-oLJi42RoXc_3yqgQo-PI"
+        
+        NSLog("\(debugId): Starting to fetch friendships for user: \(userId)")
+        writeLogToFile("\(debugId): Starting to fetch friendships for user: \(userId)")
+        
+        // First, get friendships - use URL encoding for the or operator
+        // PostgREST format: or=(condition1,condition2) needs to be URL encoded
+        let orCondition = "or=(user_id.eq.\(userId),friend_id.eq.\(userId))"
+        let encodedOrCondition = orCondition.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? orCondition
+        let friendshipsUrl = "\(supabaseUrl)/rest/v1/friendships?status=eq.accepted&\(encodedOrCondition)&select=user_id,friend_id"
+        
+        NSLog("\(debugId): Friendships URL: \(friendshipsUrl)")
+        writeLogToFile("\(debugId): Friendships URL: \(friendshipsUrl)")
+        
+        guard let url = URL(string: friendshipsUrl) else {
+            NSLog("\(debugId): ERROR - Invalid friendships URL")
+            writeLogToFile("\(debugId): ERROR - Invalid friendships URL")
+            return
+        }
+        
+        // Get access token from session data for authenticated requests
+        guard let sessionDataString = sharedDefaults.string(forKey: "sessionData"),
+              let sessionDataData = sessionDataString.data(using: .utf8),
+              let sessionJson = try? JSONSerialization.jsonObject(with: sessionDataData) as? [String: Any],
+              let accessToken = sessionJson["access_token"] as? String else {
+            NSLog("\(debugId): ERROR - Could not get access_token from session data")
+            writeLogToFile("\(debugId): ERROR - Could not get access_token from session data")
+            return
+        }
+        
+        // Use anon key for apikey (already declared above), but user's access token for Authorization
+        var request = URLRequest(url: url)
+        request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        NSLog("\(debugId): Using access token for friendships request (first 20 chars: \(accessToken.prefix(20)))")
+        writeLogToFile("\(debugId): Using access token for friendships request (first 20 chars: \(accessToken.prefix(20)))")
+        
+        NSLog("\(debugId): Making friendships API request...")
+        writeLogToFile("\(debugId): Making friendships API request...")
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else {
+                NSLog("\(debugId): ERROR - self is nil in friendships response handler")
+                return
+            }
+            
+            if let error = error {
+                NSLog("\(debugId): ERROR - Error fetching friendships: \(error.localizedDescription)")
+                self.writeLogToFile("\(debugId): ERROR - Error fetching friendships: \(error.localizedDescription)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                NSLog("\(debugId): Friendships API response status: \(httpResponse.statusCode)")
+                self.writeLogToFile("\(debugId): Friendships API response status: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode != 200 {
+                    if let data = data, let errorString = String(data: data, encoding: .utf8) {
+                        NSLog("\(debugId): ERROR - Non-200 response: \(errorString)")
+                        self.writeLogToFile("\(debugId): ERROR - Non-200 response: \(errorString)")
+                    }
+                    return
+                }
+            }
+            
+            guard let data = data else {
+                NSLog("\(debugId): ERROR - No data in friendships response")
+                self.writeLogToFile("\(debugId): ERROR - No data in friendships response")
+                return
+            }
+            
+            NSLog("\(debugId): Received friendships data (length: \(data.count) bytes)")
+            self.writeLogToFile("\(debugId): Received friendships data (length: \(data.count) bytes)")
+            
+            if let dataString = String(data: data, encoding: .utf8) {
+                NSLog("\(debugId): Friendships response: \(dataString)")
+                self.writeLogToFile("\(debugId): Friendships response: \(dataString)")
+            }
+            
+            guard let friendships = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                NSLog("\(debugId): ERROR - Failed to parse friendships JSON")
+                self.writeLogToFile("\(debugId): ERROR - Failed to parse friendships JSON")
+                return
+            }
+            
+            NSLog("\(debugId): SUCCESS - Parsed \(friendships.count) friendships")
+            self.writeLogToFile("\(debugId): SUCCESS - Parsed \(friendships.count) friendships")
+            
+            // Extract friend IDs
+            var friendIds: [String] = []
+            for friendship in friendships {
+                if let friendId = friendship["user_id"] as? String, friendId != userId {
+                    friendIds.append(friendId)
+                    NSLog("\(debugId): Found friend via user_id: \(friendId)")
+                    self.writeLogToFile("\(debugId): Found friend via user_id: \(friendId)")
+                } else if let friendId = friendship["friend_id"] as? String, friendId != userId {
+                    friendIds.append(friendId)
+                    NSLog("\(debugId): Found friend via friend_id: \(friendId)")
+                    self.writeLogToFile("\(debugId): Found friend via friend_id: \(friendId)")
+                }
+            }
+            
+            NSLog("\(debugId): Extracted \(friendIds.count) friend IDs: \(friendIds)")
+            self.writeLogToFile("\(debugId): Extracted \(friendIds.count) friend IDs: \(friendIds)")
+            
+            if friendIds.isEmpty {
+                NSLog("\(debugId): No friends found, reloading empty table")
+                self.writeLogToFile("\(debugId): No friends found, reloading empty table")
+                DispatchQueue.main.async {
+                    self.friendsTableView.reloadData()
+                }
+                return
+            }
+            
+            NSLog("\(debugId): Found \(friendIds.count) friends, fetching profiles...")
+            self.writeLogToFile("\(debugId): Found \(friendIds.count) friends, fetching profiles...")
+            
+            // Fetch friend profiles using PostgREST IN operator
+            // Format: id=in.(uuid1,uuid2,uuid3)
+            let friendIdsJoined = friendIds.joined(separator: ",")
+            let inCondition = "id=in.(\(friendIdsJoined))"
+            let profilesUrl = "\(supabaseUrl)/rest/v1/profiles?\(inCondition)&select=id,first_name,last_name,username,avatar_url"
+            
+            NSLog("\(debugId): Profiles URL: \(profilesUrl)")
+            self.writeLogToFile("\(debugId): Profiles URL: \(profilesUrl)")
+            
+            guard let profilesURL = URL(string: profilesUrl) else {
+                NSLog("\(debugId): ERROR - Invalid profiles URL")
+                self.writeLogToFile("\(debugId): ERROR - Invalid profiles URL")
+                return
+            }
+            
+            // Get access token from session data for authenticated requests
+            guard let sessionDataString = sharedDefaults.string(forKey: "sessionData"),
+                  let sessionDataData = sessionDataString.data(using: .utf8),
+                  let sessionJson = try? JSONSerialization.jsonObject(with: sessionDataData) as? [String: Any],
+                  let accessToken = sessionJson["access_token"] as? String else {
+                NSLog("\(debugId): ERROR - Could not get access_token from session data for profiles request")
+                self.writeLogToFile("\(debugId): ERROR - Could not get access_token from session data for profiles request")
+                return
+            }
+            
+            var profilesRequest = URLRequest(url: profilesURL)
+            profilesRequest.setValue(anonKey, forHTTPHeaderField: "apikey")
+            profilesRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            profilesRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            NSLog("\(debugId): Making profiles API request...")
+            self.writeLogToFile("\(debugId): Making profiles API request...")
+            
+            URLSession.shared.dataTask(with: profilesRequest) { [weak self] data, response, error in
+                guard let self = self else {
+                    NSLog("\(debugId): ERROR - self is nil in profiles response handler")
+                    return
+                }
+                
+                if let error = error {
+                    NSLog("\(debugId): ERROR - Error fetching profiles: \(error.localizedDescription)")
+                    self.writeLogToFile("\(debugId): ERROR - Error fetching profiles: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    NSLog("\(debugId): Profiles API response status: \(httpResponse.statusCode)")
+                    self.writeLogToFile("\(debugId): Profiles API response status: \(httpResponse.statusCode)")
+                    
+                    if httpResponse.statusCode != 200 {
+                        if let data = data, let errorString = String(data: data, encoding: .utf8) {
+                            NSLog("\(debugId): ERROR - Non-200 response: \(errorString)")
+                            self.writeLogToFile("\(debugId): ERROR - Non-200 response: \(errorString)")
+                        }
+                        return
+                    }
+                }
+                
+                guard let data = data else {
+                    NSLog("\(debugId): ERROR - No data in profiles response")
+                    self.writeLogToFile("\(debugId): ERROR - No data in profiles response")
+                    return
+                }
+                
+                NSLog("\(debugId): Received profiles data (length: \(data.count) bytes)")
+                self.writeLogToFile("\(debugId): Received profiles data (length: \(data.count) bytes)")
+                
+                if let dataString = String(data: data, encoding: .utf8) {
+                    NSLog("\(debugId): Profiles response: \(dataString.prefix(500))") // Log first 500 chars
+                    self.writeLogToFile("\(debugId): Profiles response: \(dataString)")
+                }
+                
+                guard let profiles = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                    NSLog("\(debugId): ERROR - Failed to parse profiles JSON")
+                    self.writeLogToFile("\(debugId): ERROR - Failed to parse profiles JSON")
+                    return
+                }
+                
+                NSLog("\(debugId): SUCCESS - Parsed \(profiles.count) friend profiles")
+                self.writeLogToFile("\(debugId): SUCCESS - Parsed \(profiles.count) friend profiles")
+                
+                // Convert to FriendData
+                var friendList: [FriendData] = []
+                NSLog("\(debugId): Converting \(profiles.count) profiles to FriendData...")
+                self.writeLogToFile("\(debugId): Converting \(profiles.count) profiles to FriendData...")
+                
+                for (index, profile) in profiles.enumerated() {
+                    guard let id = profile["id"] as? String else {
+                        NSLog("\(debugId): WARNING - Profile at index \(index) missing id")
+                        self.writeLogToFile("\(debugId): WARNING - Profile at index \(index) missing id")
+                        continue
+                    }
+                    
+                    let firstName = profile["first_name"] as? String ?? ""
+                    let lastName = profile["last_name"] as? String ?? ""
+                    let username = profile["username"] as? String ?? ""
+                    let avatarUrl = profile["avatar_url"] as? String
+                    
+                    // Create display name
+                    let name: String
+                    if !firstName.isEmpty && !lastName.isEmpty {
+                        name = "\(firstName) \(lastName)"
+                    } else if !firstName.isEmpty {
+                        name = firstName
+                    } else if !username.isEmpty {
+                        name = username
+                    } else {
+                        name = "User"
+                    }
+                    
+                    // Create handle (username or empty)
+                    let handle = username.isEmpty ? "" : "@\(username)"
+                    
+                    let friendData = FriendData(id: id, name: name, handle: handle, avatarUrl: avatarUrl)
+                    friendList.append(friendData)
+                    
+                    NSLog("\(debugId): Added friend #\(index + 1): \(name) (\(handle)) - ID: \(id)")
+                    self.writeLogToFile("\(debugId): Added friend #\(index + 1): \(name) (\(handle)) - ID: \(id)")
+                }
+                
+                NSLog("\(debugId): Converted \(friendList.count) profiles to FriendData")
+                self.writeLogToFile("\(debugId): Converted \(friendList.count) profiles to FriendData")
+                
+                DispatchQueue.main.async {
+                    self.friends = friendList
+                    NSLog("\(debugId): Updated friends array with \(friendList.count) friends on main thread")
+                    self.writeLogToFile("\(debugId): Updated friends array with \(friendList.count) friends on main thread")
+                    
+                    self.friendsTableView.reloadData()
+                    NSLog("\(debugId): SUCCESS - Reloaded table view with \(friendList.count) friends")
+                    self.writeLogToFile("\(debugId): SUCCESS - Reloaded table view with \(friendList.count) friends")
+                }
+            }.resume()
+        }.resume()
     }
     
     private func dismissExtension() {

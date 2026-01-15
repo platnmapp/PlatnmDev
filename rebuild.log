@@ -1,0 +1,747 @@
+env: load .env
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_KEY EXPO_PUBLIC_SPOTIFY_CLIENT_ID EXPO_PUBLIC_SPOTIFY_CLIENT_SECRET EXPO_PUBLIC_APPLE_MUSIC_KEY_ID EXPO_PUBLIC_APPLE_MUSIC_TEAM_ID EXPO_PUBLIC_APPLE_MUSIC_PRIVATE_KEY EXPO_PUBLIC_APPLE_MUSIC_JWT_SERVER_URL APPLE_MUSIC_KEY_ID APPLE_MUSIC_TEAM_ID APPLE_MUSIC_PRIVATE_KEY APPLE_MUSIC_JWT_SERVER_URL
+Unexpected devicectl JSON version output from devicectl. Connecting to physical Apple devices may not work as expected.
+› Using --device 00008030-0015654C1ED8C02E
+› Auto signing app using team(s): 5W892YU78M, 5W892YU78M
+› Planning build
+    Run script build phase '[CP-User] [Hermes] Replace Hermes for the right configuration, if needed' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'hermes-engine' from project 'Pods')
+› Executing react-native Pods/hermes-engine » [CP-User] [Hermes] Replace Hermes for the right configuration, if needed
+› Preparing Pods/boost-boost_privacy » ResourceBundle-boost_privacy-boost-Info.plist
+› Preparing expo-dev-menu-interface Pods/expo-dev-menu-interface » expo-dev-menu-interface-Info.plist
+› Preparing Pods/FirebaseCoreInternal-FirebaseCoreInternal_Privacy » ResourceBundle-FirebaseCoreInternal_Privacy-FirebaseCoreInternal-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'fmt' from project 'Pods')
+› Executing react-native Pods/fmt » Create Symlinks to Header Folders
+› Executing react-native Pods/Yoga » Create Symlinks to Header Folders
+› Executing react-native Pods/React-rendererconsistency » Create Symlinks to Header Folders
+› Executing react-native Pods/React-debug » Create Symlinks to Header Folders
+› Preparing Pods/nanopb-nanopb_Privacy » ResourceBundle-nanopb_Privacy-nanopb-Info.plist
+› Preparing Pods/glog-glog_privacy » ResourceBundle-glog_privacy-glog-Info.plist
+› Preparing Pods/PromisesObjC-FBLPromises_Privacy » ResourceBundle-FBLPromises_Privacy-PromisesObjC-Info.plist
+› Preparing Pods/GoogleUtilities-GoogleUtilities_Privacy » ResourceBundle-GoogleUtilities_Privacy-GoogleUtilities-Info.plist
+› Preparing Pods/FirebaseInstallations-FirebaseInstallations_Privacy » ResourceBundle-FirebaseInstallations_Privacy-FirebaseInstallations-Info.plist
+› Preparing Pods/FirebaseCore-FirebaseCore_Privacy » ResourceBundle-FirebaseCore_Privacy-FirebaseCore-Info.plist
+› Preparing Pods/EXApplication-ExpoApplication_privacy » ResourceBundle-ExpoApplication_privacy-EXApplication-Info.plist
+› Preparing platnm/ShareExtension » Info.plist
+› Preparing @react-native-firebase/analytics Pods/nanopb » nanopb-Info.plist
+› Preparing Pods/GoogleUtilities » GoogleUtilities-Info.plist
+› Preparing react-native Pods/glog » glog-Info.plist
+› Preparing expo-constants Pods/EXConstants-EXConstants » ResourceBundle-EXConstants-EXConstants-Info.plist
+› Signing   platnm/ShareExtension » ShareExtension.appex
+› Preparing react-native Pods/fmt » fmt-Info.plist
+› Preparing react-native Pods/React-debug » React-debug-Info.plist
+› Preparing @react-native-firebase/analytics Pods/PromisesObjC » PromisesObjC-Info.plist
+› Preparing @react-native-firebase/app Pods/FirebaseCoreInternal » FirebaseCoreInternal-Info.plist
+› Executing react-native Pods/React-Mapbuffer » Create Symlinks to Header Folders
+› Preparing react-native Pods/SocketRocket » SocketRocket-Info.plist
+› Preparing react-native Pods/DoubleConversion » DoubleConversion-Info.plist
+› Preparing react-native Pods/React-logger » React-logger-Info.plist
+› Preparing Pods/RCT-Folly-RCT-Folly_privacy » ResourceBundle-RCT-Folly_privacy-RCT-Folly-Info.plist
+› Preparing Pods/RNCAsyncStorage-RNCAsyncStorage_resources » ResourceBundle-RNCAsyncStorage_resources-RNCAsyncStorage-Info.plist
+› Preparing Pods/expo-dev-menu-EXDevMenu » ResourceBundle-EXDevMenu-expo-dev-menu-Info.plist
+› Preparing Pods/React-cxxreact-React-cxxreact_privacy » ResourceBundle-React-cxxreact_privacy-React-cxxreact-Info.plist
+› Preparing Pods/RNSVG-RNSVGFilters » ResourceBundle-RNSVGFilters-RNSVG-Info.plist
+› Preparing Pods/EXNotifications-ExpoNotifications_privacy » ResourceBundle-ExpoNotifications_privacy-EXNotifications-Info.plist
+› Preparing Pods/ExpoFileSystem-ExpoFileSystem_privacy » ResourceBundle-ExpoFileSystem_privacy-ExpoFileSystem-Info.plist
+› Preparing Pods/EXConstants-ExpoConstants_privacy » ResourceBundle-ExpoConstants_privacy-EXConstants-Info.plist
+› Preparing Pods/React-Core-React-Core_privacy » ResourceBundle-React-Core_privacy-React-Core-Info.plist
+› Executing react-native Pods/RCT-Folly » Create Symlinks to Header Folders
+› Preparing Pods/expo-dev-launcher-EXDevLauncher » ResourceBundle-EXDevLauncher-expo-dev-launcher-Info.plist
+› Preparing react-native Pods/React-oscompat » React-oscompat-Info.plist
+› Preparing @react-native-firebase/app Pods/FirebaseCore » FirebaseCore-Info.plist
+› Preparing react-native Pods/RCT-Folly » RCT-Folly-Info.plist
+› Preparing @react-native-firebase/analytics Pods/FirebaseInstallations » FirebaseInstallations-Info.plist
+› Preparing react-native Pods/React-rendererconsistency » React-rendererconsistency-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-rendererdebug' from project 'Pods')
+› Executing react-native Pods/React-rendererdebug » Create Symlinks to Header Folders
+› Executing react-native Pods/React-jsinspectortracing » Create Symlinks to Header Folders
+› Executing react-native Pods/React-featureflags » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-perflogger » React-perflogger-Info.plist
+› Preparing react-native Pods/React-jsi » React-jsi-Info.plist
+› Preparing react-native Pods/RCTDeprecation » RCTDeprecation-Info.plist
+› Preparing react-native Pods/React-rendererdebug » React-rendererdebug-Info.plist
+› Preparing react-native Pods/React-jsinspectortracing » React-jsinspectortracing-Info.plist
+› Preparing react-native Pods/Yoga » Yoga-Info.plist
+› Preparing react-native Pods/React-featureflags » React-featureflags-Info.plist
+› Preparing react-native Pods/React-jsinspector » React-jsinspector-Info.plist
+› Preparing react-native Pods/React-Mapbuffer » React-Mapbuffer-Info.plist
+› Preparing react-native Pods/React-cxxreact » React-cxxreact-Info.plist
+› Preparing expo-json-utils Pods/EXJSONUtils » EXJSONUtils-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-performancetimeline' from project 'Pods')
+› Executing react-native Pods/React-performancetimeline » Create Symlinks to Header Folders
+› Executing react-native Pods/React-jsitooling » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-jsiexecutor » React-jsiexecutor-Info.plist
+› Preparing react-native Pods/React-hermes » React-hermes-Info.plist
+› Preparing react-native Pods/React-performancetimeline » React-performancetimeline-Info.plist
+› Preparing react-native Pods/React-jsitooling » React-jsitooling-Info.plist
+› Executing react-native Pods/React-utils » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-utils » React-utils-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'ReactCommon' from project 'Pods')
+› Executing react-native Pods/ReactCommon » Create Symlinks to Header Folders
+› Executing react-native Pods/React-runtimescheduler » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-runtimescheduler » React-runtimescheduler-Info.plist
+› Executing react-native Pods/React-renderercss » Create Symlinks to Header Folders
+› Executing react-native Pods/React-graphics » Create Symlinks to Header Folders
+› Preparing react-native Pods/ReactCommon » ReactCommon-Info.plist
+› Preparing react-native Pods/React-Core » React-Core-Info.plist
+› Executing react-native Pods/React-jserrorhandler » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-renderercss » React-renderercss-Info.plist
+› Preparing react-native Pods/React-graphics » React-graphics-Info.plist
+› Preparing react-native Pods/React-RCTText » React-RCTText-Info.plist
+› Executing react-native Pods/React-NativeModulesApple » Create Symlinks to Header Folders
+› Preparing react-native Pods/RCTTypeSafety » RCTTypeSafety-Info.plist
+› Preparing @react-native-firebase/app Pods/RNFBApp » RNFBApp-Info.plist
+› Preparing react-native Pods/React-jserrorhandler » React-jserrorhandler-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-Fabric' from project 'Pods')
+› Executing react-native Pods/React-Fabric » [CP-User] [RN]Check rncore
+› Preparing react-native Pods/React-NativeModulesApple » React-NativeModulesApple-Info.plist
+› Executing react-native Pods/React-Fabric » Create Symlinks to Header Folders
+› Executing react-native Pods/React-RCTFBReactNativeSpec » [CP-User] [RN]Check FBReactNativeSpec
+› Preparing react-native Pods/React-RCTFBReactNativeSpec » React-RCTFBReactNativeSpec-Info.plist
+› Preparing react-native Pods/React-Fabric » React-Fabric-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-featureflagsnativemodule' from project 'Pods')
+› Executing react-native Pods/React-featureflagsnativemodule » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-RCTNetwork » React-RCTNetwork-Info.plist
+› Preparing react-native Pods/React-RCTVibration » React-RCTVibration-Info.plist
+› Executing react-native Pods/React-FabricComponents » [CP-User] [RN]Check rncore
+› Executing react-native Pods/React-RuntimeCore » Create Symlinks to Header Folders
+› Executing react-native Pods/React-ImageManager » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-RCTSettings » React-RCTSettings-Info.plist
+› Preparing react-native Pods/React-RCTImage » React-RCTImage-Info.plist
+› Preparing react-native Pods/React-ImageManager » React-ImageManager-Info.plist
+› Executing react-native Pods/React-idlecallbacksnativemodule » Create Symlinks to Header Folders
+› Executing react-native Pods/React-FabricComponents » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-RuntimeCore » React-RuntimeCore-Info.plist
+› Preparing react-native Pods/React-RCTLinking » React-RCTLinking-Info.plist
+› Executing react-native Pods/React-FabricImage » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-RCTBlob » React-RCTBlob-Info.plist
+› Executing react-native Pods/React-microtasksnativemodule » Create Symlinks to Header Folders
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-RuntimeHermes' from project 'Pods')
+› Executing react-native Pods/React-RuntimeHermes » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-FabricComponents » React-FabricComponents-Info.plist
+› Preparing react-native Pods/React-RCTAnimation » React-RCTAnimation-Info.plist
+› Preparing react-native Pods/React-FabricImage » React-FabricImage-Info.plist
+› Preparing react-native Pods/React-CoreModules » React-CoreModules-Info.plist
+› Executing react-native Pods/React-domnativemodule » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-idlecallbacksnativemodule » React-idlecallbacksnativemodule-Info.plist
+› Preparing react-native Pods/React-RuntimeHermes » React-RuntimeHermes-Info.plist
+› Preparing react-native Pods/React-featureflagsnativemodule » React-featureflagsnativemodule-Info.plist
+› Preparing react-native Pods/React-RCTFabric » React-RCTFabric-Info.plist
+› Preparing react-native Pods/React-microtasksnativemodule » React-microtasksnativemodule-Info.plist
+› Executing react-native Pods/React-RuntimeApple » Create Symlinks to Header Folders
+› Preparing react-native-apple-music-user-token Pods/react-native-apple-music-user-token » react-native-apple-music-user-token-Info.plist
+› Preparing react-native Pods/React-domnativemodule » React-domnativemodule-Info.plist
+› Preparing react-native Pods/React-RuntimeApple » React-RuntimeApple-Info.plist
+› Executing react-native Pods/React-defaultsnativemodule » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-defaultsnativemodule » React-defaultsnativemodule-Info.plist
+› Executing react-native Pods/React-RCTRuntime » Create Symlinks to Header Folders
+› Preparing react-native Pods/React-RCTRuntime » React-RCTRuntime-Info.plist
+› Preparing react-native Pods/React-RCTAppDelegate » React-RCTAppDelegate-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'ReactCodegen' from project 'Pods')
+› Executing platnm Pods/ReactCodegen » Create Symlinks to Header Folders
+› Preparing platnm Pods/ReactCodegen » ReactCodegen-Info.plist
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'RNReanimated' from project 'Pods')
+› Executing react-native-reanimated Pods/RNReanimated » Create Symlinks to Header Folders
+› Preparing expo-modules-core Pods/ExpoModulesCore » ExpoModulesCore-Info.plist
+› Preparing platnm Pods/ReactAppDependencyProvider » ReactAppDependencyProvider-Info.plist
+› Preparing react-native-webview Pods/react-native-webview » react-native-webview-Info.plist
+› Executing expo-constants Pods/EXConstants » [CP-User] Generate app.config for prebuilt Constants.manifest
+› Preparing expo-updates-interface Pods/EXUpdatesInterface » EXUpdatesInterface-Info.plist
+› Preparing expo-manifests Pods/EXManifests » EXManifests-Info.plist
+› Preparing react-native-safe-area-context Pods/react-native-safe-area-context » react-native-safe-area-context-Info.plist
+› Preparing react-native-screens Pods/RNScreens » RNScreens-Info.plist
+› Preparing expo-dev-menu Pods/expo-dev-menu » expo-dev-menu-Info.plist
+› Preparing react-native-svg Pods/RNSVG » RNSVG-Info.plist
+› Preparing expo-dev-launcher Pods/expo-dev-launcher » expo-dev-launcher-Info.plist
+› Preparing react-native-gesture-handler Pods/RNGestureHandler » RNGestureHandler-Info.plist
+› Preparing @react-native-async-storage/async-storage Pods/RNCAsyncStorage » RNCAsyncStorage-Info.plist
+› Preparing react-native-reanimated Pods/RNReanimated » RNReanimated-Info.plist
+› Preparing @react-native-firebase/analytics Pods/RNFBAnalytics » RNFBAnalytics-Info.plist
+› Preparing expo-splash-screen Pods/ExpoSplashScreen » ExpoSplashScreen-Info.plist
+› Preparing expo-linking Pods/ExpoLinking » ExpoLinking-Info.plist
+› Preparing expo-keep-awake Pods/ExpoKeepAwake » ExpoKeepAwake-Info.plist
+› Preparing expo-web-browser Pods/ExpoWebBrowser » ExpoWebBrowser-Info.plist
+› Preparing expo-haptics Pods/ExpoHaptics » ExpoHaptics-Info.plist
+› Preparing expo-font Pods/ExpoFont » ExpoFont-Info.plist
+› Preparing expo-image-loader Pods/EXImageLoader » EXImageLoader-Info.plist
+› Preparing expo-file-system Pods/ExpoFileSystem » ExpoFileSystem-Info.plist
+› Preparing expo-router Pods/ExpoHead » ExpoHead-Info.plist
+› Preparing expo-asset Pods/ExpoAsset » ExpoAsset-Info.plist
+› Preparing expo Pods/Expo » Expo-Info.plist
+› Preparing expo-crypto Pods/ExpoCrypto » ExpoCrypto-Info.plist
+› Preparing expo-application Pods/EXApplication » EXApplication-Info.plist
+› Preparing expo-image-picker Pods/ExpoImagePicker » ExpoImagePicker-Info.plist
+› Preparing expo-av Pods/EXAV » EXAV-Info.plist
+    Run script build phase '[CP-User] [RNFB] Core Configuration' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'platnm' from project 'platnm')
+› Preparing expo-constants Pods/EXConstants » EXConstants-Info.plist
+› Preparing expo-notifications Pods/EXNotifications » EXNotifications-Info.plist
+› Preparing Pods/Pods-platnm » Pods-platnm-Info.plist
+› Executing platnm » [Expo] Configure project
+› Executing platnm » Bundle React Native code and images
+› Executing platnm » [CP] Copy Pods Resources
+› Executing platnm » [CP-User] [RNFB] Core Configuration
+› Preparing platnm » Info.plist
+› Generating debug platnm » platnm.app.dSYM
+› Signing   platnm » platnm.debug.dylib
+› Signing   platnm » __preview.dylib
+› Signing   platnm » platnm.app
+    Embedded binary's NSExtensionActivationRule is TRUEPREDICATE. Before you submit your containing app to the App Store, be sure to replace all uses of TRUEPREDICATE with specific predicate statements or NSExtensionActivationRule keys. If any extensions in your containing app include TRUEPREDICATE, the app will be rejected.
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'Yoga' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-rendererconsistency' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-debug' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-Mapbuffer' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'RCT-Folly' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-jsinspectortracing' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-featureflags' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-jsitooling' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-utils' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-runtimescheduler' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-renderercss' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-graphics' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-jserrorhandler' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-NativeModulesApple' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-FabricComponents' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-RuntimeCore' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-ImageManager' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-idlecallbacksnativemodule' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-FabricImage' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-microtasksnativemodule' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-domnativemodule' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-RuntimeApple' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-defaultsnativemodule' from project 'Pods')
+    Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'React-RCTRuntime' from project 'Pods')
+› Build Succeeded
+
+› 0 error(s), and 36 warning(s)
+
+Starting Metro Bundler
+Waiting on http://localhost:8081
+› Installing /Users/platnm/Library/Developer/Xcode/DerivedData/platnm-bvaoihwitbumbpflktouuazukbsu/Build/Products/Debug-iphoneos/platnm.app
+- CreatingStagingDirectory
+✔ Complete 100%
+
+› Logs for your project will appear below.
+iOS ./index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+iOS Bundled 505ms index.js (1620 modules)
+ LOG  🚀 APP STARTING - index.js loaded
+ LOG  ✅ Polyfills loaded
+ LOG  ✅ Expo Router entry loaded
+ LOG  ✅ Supabase client initialized with URL: https://uirmafqpkulwkkpyfmrj.supabase.co
+ LOG  ✅ Supabase key present: true
+ LOG  ✅ Environment check: {"hasConstants": true, "hasProcessEnv": true, "keyLength": 208, "urlLength": 40}
+ LOG  🔍 Testing Supabase connectivity to: https://uirmafqpkulwkkpyfmrj.supabase.co/rest/v1/
+ LOG  session_debug: AuthContext module loaded, SharedUserDefaults available: false
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Module loaded, SharedUserDefaults: NOT AVAILABLE
+ LOG  🚀 ROOT LAYOUT RENDERING - App is starting!
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: null
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  === AUTH STATE CHANGE ===
+ LOG  Event: SIGNED_IN
+ LOG  Session exists: true
+ LOG  User exists: true
+ LOG  session_debug: AUTH STATE CHANGE - Event: SIGNED_IN, Session exists: true, User exists: true
+ LOG  session_debug: About to call storeSessionData with event: SIGNED_IN
+ LOG  session_debug: storeSessionData called
+ LOG  session_debug: Session exists: true
+ LOG  session_debug: Session has access_token: true
+ LOG  session_debug: Session has user: true
+ LOG  session_debug: Session user ID: 7e61f072-d5cf-427e-8ee6-326eaa4bd4f7
+ LOG  session_debug: ERROR - SharedUserDefaults not available, skipping session storage
+ LOG  Setting user: adamchaabane1234@gmail.com
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: true
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  ✅ Supabase connectivity test: {"ok": true, "status": 200, "statusText": "", "url": "https://uirmafqpkulwkkpyfmrj.supabase.co/rest/v1/"}
+ LOG  Info: checkOnboardingStatus encountered an issue: [Error: Onboarding check timeout]
+ LOG  Onboarding check timeout, defaulting to not completed
+ LOG  === AUTH STATE CHANGE ===
+ LOG  Event: INITIAL_SESSION
+ LOG  Session exists: true
+ LOG  User exists: true
+ LOG  session_debug: AUTH STATE CHANGE - Event: INITIAL_SESSION, Session exists: true, User exists: true
+ LOG  session_debug: About to call storeSessionData with event: INITIAL_SESSION
+ LOG  session_debug: storeSessionData called
+ LOG  session_debug: Session exists: true
+ LOG  session_debug: Session has access_token: true
+ LOG  session_debug: Session has user: true
+ LOG  session_debug: Session user ID: 7e61f072-d5cf-427e-8ee6-326eaa4bd4f7
+ LOG  session_debug: ERROR - SharedUserDefaults not available, skipping session storage
+ LOG  Setting user: adamchaabane1234@gmail.com
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: true
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  Onboarding check: {"hasCompleteName": "Chaabane", "hasCompleteProfile": "adam_chaabane", "hasExplicitOnboarding": true, "hasUsername": "adam_chaabane"}
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Rendering Slot
+ LOG  === ROOT INDEX DEBUG ===
+ LOG  RootIndex - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  ROOT INDEX: User authenticated and onboarded, redirecting to profile
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User ready state: true
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User just became ready
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Resetting hasCheckedAppGroup and scheduling check
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Deep link useEffect initialized
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getInitialURL...
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Initial AppState: active
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - App is already active, will check App Group
+ LOG  Empty segments, skipping redirect (navigation in progress)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Cleaning up deep link useEffect
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  segments: ["(app)", "profile"]
+ LOG  current route segments: (app)/profile
+ LOG  Rendering Slot
+ LOG  inAuthGroup: false
+ LOG  inAccountSetupGroup: false
+ LOG  inOnboardingGroup: false
+ LOG  isOnConfirmationCode: false
+ LOG  isOnAccountSetup: false
+ LOG  isOnAuthFlow: false
+ LOG  wasOnConfirmationCodeRef: false
+ LOG  lastPathRef: 
+ LOG  isUnexpectedProfileRedirect: false
+ LOG  User exists: true
+ LOG  Should redirect?
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - getInitialURL result: null
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - No initial URL, will check App Group UserDefaults
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Setting hasCheckedAppGroup to true and scheduling checkAppGroupForSharedURL
+ LOG  NO REDIRECT: User is already in correct flow
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Timer fired, calling checkAppGroupForSharedURL
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - checkAppGroupForSharedURL called (attempt #1)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults module: NOT AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - NativeModules: {}
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - All NativeModules keys: []
+ LOG  PLATNM_SHARE_DEBUG_2024: ERROR - SharedUserDefaults native module not available
+ LOG  PLATNM_SHARE_DEBUG_2024: ERROR - This means the native module isn't loaded. Check if files are in Xcode project.
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User ready timer fired, calling checkAppGroupForSharedURL
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - checkAppGroupForSharedURL called (attempt #2)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults module: NOT AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - NativeModules: {}
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - All NativeModules keys: []
+ LOG  PLATNM_SHARE_DEBUG_2024: ERROR - SharedUserDefaults native module not available
+ LOG  PLATNM_SHARE_DEBUG_2024: ERROR - This means the native module isn't loaded. Check if files are in Xcode project.
+iOS ./index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+iOS Bundled 45ms index.js (1 module)
+ LOG  🚀 APP STARTING - index.js loaded
+ LOG  ✅ Polyfills loaded
+ LOG  ✅ Expo Router entry loaded
+ LOG  ✅ Supabase client initialized with URL: https://uirmafqpkulwkkpyfmrj.supabase.co
+ LOG  ✅ Supabase key present: true
+ LOG  ✅ Environment check: {"hasConstants": true, "hasProcessEnv": true, "keyLength": 208, "urlLength": 40}
+ LOG  🔍 Testing Supabase connectivity to: https://uirmafqpkulwkkpyfmrj.supabase.co/rest/v1/
+ LOG  session_debug: AuthContext module loaded, SharedUserDefaults available: true
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Module loaded, SharedUserDefaults: AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults methods: []
+ WARN  The objective-c `setSessionData:(NSString *)data withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `setSessionData` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `setSessionData` JS method will not be available.
+ WARN  The objective-c `getSessionData:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `getSessionData` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `getSessionData` JS method will not be available.
+ WARN  The objective-c `clearSessionData:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `clearSessionData` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `clearSessionData` JS method will not be available.
+ WARN  The objective-c `getSharedMusicURL:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `getSharedMusicURL` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `getSharedMusicURL` JS method will not be available.
+ LOG  🚀 ROOT LAYOUT RENDERING - App is starting!
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: null
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  === AUTH STATE CHANGE ===
+ LOG  Event: SIGNED_IN
+ LOG  Session exists: true
+ LOG  User exists: true
+ LOG  session_debug: AUTH STATE CHANGE - Event: SIGNED_IN, Session exists: true, User exists: true
+ LOG  session_debug: About to call storeSessionData with event: SIGNED_IN
+ LOG  session_debug: storeSessionData called
+ LOG  session_debug: Session exists: true
+ LOG  session_debug: Session has access_token: true
+ LOG  session_debug: Session has user: true
+ LOG  session_debug: Session user ID: 7e61f072-d5cf-427e-8ee6-326eaa4bd4f7
+ LOG  session_debug: SharedUserDefaults is available
+ LOG  session_debug: Preparing to store session data: {"expiresAt": 1768444546, "hasAccessToken": true, "userId": "7e61f072-d5cf-427e-8ee6-326eaa4bd4f7"}
+ LOG  session_debug: Session data JSON string length: 1019
+ LOG  session_debug: Session data JSON (first 100 chars): {"access_token":"eyJhbGciOiJIUzI1NiIsImtpZCI6IkJDTTQ4dnBwdUMvMmNwc2YiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJo
+ LOG  session_debug: Calling SharedUserDefaults.setSessionData...
+ ERROR  session_debug: EXCEPTION in storeSessionData: [TypeError: SharedUserDefaults.setSessionData is not a function (it is undefined)]
+ ERROR  session_debug: Exception details: {}
+ LOG  Setting user: adamchaabane1234@gmail.com
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: true
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  ✅ Supabase connectivity test: {"ok": true, "status": 200, "statusText": "", "url": "https://uirmafqpkulwkkpyfmrj.supabase.co/rest/v1/"}
+ LOG  Info: checkOnboardingStatus encountered an issue: [Error: Onboarding check timeout]
+ LOG  Onboarding check timeout, defaulting to not completed
+ LOG  === AUTH STATE CHANGE ===
+ LOG  Event: INITIAL_SESSION
+ LOG  Session exists: true
+ LOG  User exists: true
+ LOG  session_debug: AUTH STATE CHANGE - Event: INITIAL_SESSION, Session exists: true, User exists: true
+ LOG  session_debug: About to call storeSessionData with event: INITIAL_SESSION
+ LOG  session_debug: storeSessionData called
+ LOG  session_debug: Session exists: true
+ LOG  session_debug: Session has access_token: true
+ LOG  session_debug: Session has user: true
+ LOG  session_debug: Session user ID: 7e61f072-d5cf-427e-8ee6-326eaa4bd4f7
+ LOG  session_debug: SharedUserDefaults is available
+ LOG  session_debug: Preparing to store session data: {"expiresAt": 1768444546, "hasAccessToken": true, "userId": "7e61f072-d5cf-427e-8ee6-326eaa4bd4f7"}
+ LOG  session_debug: Session data JSON string length: 1019
+ LOG  session_debug: Session data JSON (first 100 chars): {"access_token":"eyJhbGciOiJIUzI1NiIsImtpZCI6IkJDTTQ4dnBwdUMvMmNwc2YiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJo
+ LOG  session_debug: Calling SharedUserDefaults.setSessionData...
+ ERROR  session_debug: EXCEPTION in storeSessionData: [TypeError: SharedUserDefaults.setSessionData is not a function (it is undefined)]
+ ERROR  session_debug: Exception details: {}
+ LOG  Setting user: adamchaabane1234@gmail.com
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: true
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  Onboarding check: {"hasCompleteName": "Chaabane", "hasCompleteProfile": "adam_chaabane", "hasExplicitOnboarding": true, "hasUsername": "adam_chaabane"}
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Rendering Slot
+ LOG  === ROOT INDEX DEBUG ===
+ LOG  RootIndex - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  ROOT INDEX: User authenticated and onboarded, redirecting to profile
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User ready state: true
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User just became ready
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Resetting hasCheckedAppGroup and scheduling check
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Deep link useEffect initialized
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getInitialURL...
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Initial AppState: active
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - App is already active, will check App Group
+ LOG  Empty segments, skipping redirect (navigation in progress)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Cleaning up deep link useEffect
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  segments: ["(app)", "profile"]
+ LOG  current route segments: (app)/profile
+ LOG  Rendering Slot
+ LOG  inAuthGroup: false
+ LOG  inAccountSetupGroup: false
+ LOG  inOnboardingGroup: false
+ LOG  isOnConfirmationCode: false
+ LOG  isOnAccountSetup: false
+ LOG  isOnAuthFlow: false
+ LOG  wasOnConfirmationCodeRef: false
+ LOG  lastPathRef: 
+ LOG  isUnexpectedProfileRedirect: false
+ LOG  User exists: true
+ LOG  Should redirect?
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - getInitialURL result: null
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - No initial URL, will check App Group UserDefaults
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Setting hasCheckedAppGroup to true and scheduling checkAppGroupForSharedURL
+ LOG  NO REDIRECT: User is already in correct flow
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Timer fired, calling checkAppGroupForSharedURL
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - checkAppGroupForSharedURL called (attempt #1)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults module: AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - NativeModules: {}
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - All NativeModules keys: []
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults.getSharedMusicURL exists: undefined
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL...
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Exception reading from App Group: [TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)]
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error type: object
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error message: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stringified: {}
+ ERROR  Warning: PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stack: TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+
+[0m [90m 146 |[39m     [36mtry[39m {
+ [90m 147 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL..."[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 148 |[39m       [36mconst[39m sharedURL [33m=[39m [36mawait[39m [33mSharedUserDefaults[39m[33m.[39mgetSharedMusicURL()[33m;[39m
+ [90m     |[39m                                                                   [31m[1m^[22m[39m
+ [90m 149 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - getSharedMusicURL returned:"[39m[33m,[39m sharedURL)[33m;[39m
+ [90m 150 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL type:"[39m[33m,[39m [36mtypeof[39m sharedURL)[33m;[39m
+ [90m 151 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL is truthy:"[39m[33m,[39m [33m![39m[33m![39msharedURL)[33m;[39m[0m
+
+Call Stack
+  checkAppGroupForSharedURL (app/index.tsx:148:67)
+  tryCallTwo (address at (InternalBytecode.js:1:1222)
+  doResolve (address at (InternalBytecode.js:1:2541)
+  Promise (address at (InternalBytecode.js:1:1318)
+  RootIndex (app/index.tsx:129:34)
+  setTimeout$argument_0 (app/index.tsx:80:38)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User ready timer fired, calling checkAppGroupForSharedURL
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - checkAppGroupForSharedURL called (attempt #2)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults module: AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - NativeModules: {}
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - All NativeModules keys: []
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults.getSharedMusicURL exists: undefined
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL...
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Exception reading from App Group: [TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)]
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error type: object
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error message: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+ ERROR  Warning: PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stack: TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+
+[0m [90m 146 |[39m     [36mtry[39m {
+ [90m 147 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL..."[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 148 |[39m       [36mconst[39m sharedURL [33m=[39m [36mawait[39m [33mSharedUserDefaults[39m[33m.[39mgetSharedMusicURL()[33m;[39m
+ [90m     |[39m                                                                   [31m[1m^[22m[39m
+ [90m 149 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - getSharedMusicURL returned:"[39m[33m,[39m sharedURL)[33m;[39m
+ [90m 150 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL type:"[39m[33m,[39m [36mtypeof[39m sharedURL)[33m;[39m
+ [90m 151 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL is truthy:"[39m[33m,[39m [33m![39m[33m![39msharedURL)[33m;[39m[0m
+
+Call Stack
+  checkAppGroupForSharedURL (app/index.tsx:148:67)
+  tryCallTwo (address at (InternalBytecode.js:1:1222)
+  doResolve (address at (InternalBytecode.js:1:2541)
+  Promise (address at (InternalBytecode.js:1:1318)
+  RootIndex (app/index.tsx:129:34)
+  setTimeout$argument_0 (app/index.tsx:37:34)
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stringified: {}
+iOS ./index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+iOS Bundled 39ms index.js (1 module)
+ LOG  🚀 APP STARTING - index.js loaded
+ LOG  ✅ Polyfills loaded
+ LOG  ✅ Expo Router entry loaded
+ LOG  ✅ Supabase client initialized with URL: https://uirmafqpkulwkkpyfmrj.supabase.co
+ LOG  ✅ Supabase key present: true
+ LOG  ✅ Environment check: {"hasConstants": true, "hasProcessEnv": true, "keyLength": 208, "urlLength": 40}
+ LOG  🔍 Testing Supabase connectivity to: https://uirmafqpkulwkkpyfmrj.supabase.co/rest/v1/
+ LOG  session_debug: AuthContext module loaded, SharedUserDefaults available: true
+ WARN  [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality.
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Module loaded, SharedUserDefaults: AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults methods: []
+ WARN  The objective-c `setSessionData:(NSString *)data withResolver:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `setSessionData` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `setSessionData` JS method will not be available.
+ WARN  The objective-c `getSessionData:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `getSessionData` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `getSessionData` JS method will not be available.
+ WARN  The objective-c `clearSessionData:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `clearSessionData` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `clearSessionData` JS method will not be available.
+ WARN  The objective-c `getSharedMusicURL:(RCTPromiseResolveBlock)resolve withRejecter:(RCTPromiseRejectBlock)reject` method signature for the JS method `getSharedMusicURL` can not be found in the ObjecitveC definition of the SharedUserDefaults module.
+The `getSharedMusicURL` JS method will not be available.
+ LOG  🚀 ROOT LAYOUT RENDERING - App is starting!
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: null
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  === AUTH STATE CHANGE ===
+ LOG  Event: SIGNED_IN
+ LOG  Session exists: true
+ LOG  User exists: true
+ LOG  session_debug: AUTH STATE CHANGE - Event: SIGNED_IN, Session exists: true, User exists: true
+ LOG  session_debug: About to call storeSessionData with event: SIGNED_IN
+ LOG  session_debug: storeSessionData called
+ LOG  session_debug: Session exists: true
+ LOG  session_debug: Session has access_token: true
+ LOG  session_debug: Session has user: true
+ LOG  session_debug: Session user ID: 7e61f072-d5cf-427e-8ee6-326eaa4bd4f7
+ LOG  session_debug: SharedUserDefaults is available
+ LOG  session_debug: Preparing to store session data: {"expiresAt": 1768444546, "hasAccessToken": true, "userId": "7e61f072-d5cf-427e-8ee6-326eaa4bd4f7"}
+ LOG  session_debug: Session data JSON string length: 1019
+ LOG  session_debug: Session data JSON (first 100 chars): {"access_token":"eyJhbGciOiJIUzI1NiIsImtpZCI6IkJDTTQ4dnBwdUMvMmNwc2YiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJo
+ LOG  session_debug: Calling SharedUserDefaults.setSessionData...
+ ERROR  session_debug: EXCEPTION in storeSessionData: [TypeError: SharedUserDefaults.setSessionData is not a function (it is undefined)]
+ ERROR  session_debug: Exception details: {}
+ LOG  Setting user: adamchaabane1234@gmail.com
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: true
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  ✅ Supabase connectivity test: {"ok": true, "status": 200, "statusText": "", "url": "https://uirmafqpkulwkkpyfmrj.supabase.co/rest/v1/"}
+ LOG  Info: checkOnboardingStatus encountered an issue: [Error: Onboarding check timeout]
+ LOG  Onboarding check timeout, defaulting to not completed
+ LOG  === AUTH STATE CHANGE ===
+ LOG  Event: INITIAL_SESSION
+ LOG  Session exists: true
+ LOG  User exists: true
+ LOG  session_debug: AUTH STATE CHANGE - Event: INITIAL_SESSION, Session exists: true, User exists: true
+ LOG  session_debug: About to call storeSessionData with event: INITIAL_SESSION
+ LOG  session_debug: storeSessionData called
+ LOG  session_debug: Session exists: true
+ LOG  session_debug: Session has access_token: true
+ LOG  session_debug: Session has user: true
+ LOG  session_debug: Session user ID: 7e61f072-d5cf-427e-8ee6-326eaa4bd4f7
+ LOG  session_debug: SharedUserDefaults is available
+ LOG  session_debug: Preparing to store session data: {"expiresAt": 1768444546, "hasAccessToken": true, "userId": "7e61f072-d5cf-427e-8ee6-326eaa4bd4f7"}
+ LOG  session_debug: Session data JSON string length: 1019
+ LOG  session_debug: Session data JSON (first 100 chars): {"access_token":"eyJhbGciOiJIUzI1NiIsImtpZCI6IkJDTTQ4dnBwdUMvMmNwc2YiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJo
+ LOG  session_debug: Calling SharedUserDefaults.setSessionData...
+ ERROR  session_debug: EXCEPTION in storeSessionData: [TypeError: SharedUserDefaults.setSessionData is not a function (it is undefined)]
+ ERROR  session_debug: Exception details: {}
+ LOG  Setting user: adamchaabane1234@gmail.com
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: true
+ LOG  isCheckingOnboarding: true
+ LOG  hasCompletedOnboarding: false
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Showing loading spinner
+ LOG  Still loading or checking onboarding, skipping redirect
+ LOG  Onboarding check: {"hasCompleteName": "Chaabane", "hasCompleteProfile": "adam_chaabane", "hasExplicitOnboarding": true, "hasUsername": "adam_chaabane"}
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  segments: []
+ LOG  current route segments: 
+ LOG  Rendering Slot
+ LOG  === ROOT INDEX DEBUG ===
+ LOG  RootIndex - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  ROOT INDEX: User authenticated and onboarded, redirecting to profile
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User ready state: true
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User just became ready
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Resetting hasCheckedAppGroup and scheduling check
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Deep link useEffect initialized
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getInitialURL...
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Initial AppState: active
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - App is already active, will check App Group
+ LOG  Empty segments, skipping redirect (navigation in progress)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Cleaning up deep link useEffect
+ LOG  === MAIN LAYOUT DEBUG ===
+ LOG  InitialLayout - user: adamchaabane1234@gmail.com (AUTHENTICATED)
+ LOG  isLoading: false
+ LOG  isCheckingOnboarding: false
+ LOG  hasCompletedOnboarding: true
+ LOG  segments: ["(app)", "profile"]
+ LOG  current route segments: (app)/profile
+ LOG  Rendering Slot
+ LOG  inAuthGroup: false
+ LOG  inAccountSetupGroup: false
+ LOG  inOnboardingGroup: false
+ LOG  isOnConfirmationCode: false
+ LOG  isOnAccountSetup: false
+ LOG  isOnAuthFlow: false
+ LOG  wasOnConfirmationCodeRef: false
+ LOG  lastPathRef: 
+ LOG  isUnexpectedProfileRedirect: false
+ LOG  User exists: true
+ LOG  Should redirect?
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - getInitialURL result: null
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - No initial URL, will check App Group UserDefaults
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - hasCheckedAppGroup: false
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Setting hasCheckedAppGroup to true and scheduling checkAppGroupForSharedURL
+ LOG  NO REDIRECT: User is already in correct flow
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Timer fired, calling checkAppGroupForSharedURL
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - checkAppGroupForSharedURL called (attempt #1)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults module: AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - NativeModules: {}
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - All NativeModules keys: []
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults.getSharedMusicURL exists: undefined
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL...
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Exception reading from App Group: [TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)]
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error type: object
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error message: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stringified: {}
+ ERROR  Warning: PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stack: TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+
+[0m [90m 146 |[39m     [36mtry[39m {
+ [90m 147 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL..."[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 148 |[39m       [36mconst[39m sharedURL [33m=[39m [36mawait[39m [33mSharedUserDefaults[39m[33m.[39mgetSharedMusicURL()[33m;[39m
+ [90m     |[39m                                                                   [31m[1m^[22m[39m
+ [90m 149 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - getSharedMusicURL returned:"[39m[33m,[39m sharedURL)[33m;[39m
+ [90m 150 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL type:"[39m[33m,[39m [36mtypeof[39m sharedURL)[33m;[39m
+ [90m 151 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL is truthy:"[39m[33m,[39m [33m![39m[33m![39msharedURL)[33m;[39m[0m
+
+Call Stack
+  checkAppGroupForSharedURL (app/index.tsx:148:67)
+  tryCallTwo (address at (InternalBytecode.js:1:1222)
+  doResolve (address at (InternalBytecode.js:1:2541)
+  Promise (address at (InternalBytecode.js:1:1318)
+  RootIndex (app/index.tsx:129:34)
+  setTimeout$argument_0 (app/index.tsx:80:38)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - User ready timer fired, calling checkAppGroupForSharedURL
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - checkAppGroupForSharedURL called (attempt #2)
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults module: AVAILABLE
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - NativeModules: {}
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - All NativeModules keys: []
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - SharedUserDefaults.getSharedMusicURL exists: undefined
+ LOG  PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL...
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Exception reading from App Group: [TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)]
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error type: object
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error message: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+ ERROR  Warning: PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stack: TypeError: SharedUserDefaults.getSharedMusicURL is not a function (it is undefined)
+
+[0m [90m 146 |[39m     [36mtry[39m {
+ [90m 147 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - Calling getSharedMusicURL..."[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 148 |[39m       [36mconst[39m sharedURL [33m=[39m [36mawait[39m [33mSharedUserDefaults[39m[33m.[39mgetSharedMusicURL()[33m;[39m
+ [90m     |[39m                                                                   [31m[1m^[22m[39m
+ [90m 149 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - getSharedMusicURL returned:"[39m[33m,[39m sharedURL)[33m;[39m
+ [90m 150 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL type:"[39m[33m,[39m [36mtypeof[39m sharedURL)[33m;[39m
+ [90m 151 |[39m       console[33m.[39mlog([32m"PLATNM_SHARE_DEBUG_2024: app/index.tsx - sharedURL is truthy:"[39m[33m,[39m [33m![39m[33m![39msharedURL)[33m;[39m[0m
+
+Call Stack
+  checkAppGroupForSharedURL (app/index.tsx:148:67)
+  tryCallTwo (address at (InternalBytecode.js:1:1222)
+  doResolve (address at (InternalBytecode.js:1:2541)
+  Promise (address at (InternalBytecode.js:1:1318)
+  RootIndex (app/index.tsx:129:34)
+  setTimeout$argument_0 (app/index.tsx:37:34)
+ ERROR  PLATNM_SHARE_DEBUG_2024: ❌ ERROR - Error stringified: {}

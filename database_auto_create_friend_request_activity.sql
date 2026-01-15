@@ -1,0 +1,42 @@
+-- Create a database trigger to automatically create activity records
+-- when a friend request (pending friendship) is created
+-- This ensures activities are ALWAYS created, even if the app code fails
+
+CREATE OR REPLACE FUNCTION create_friend_request_activity()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only create activity if status is 'pending'
+  IF NEW.status = 'pending' THEN
+    INSERT INTO activities (
+      user_id,      -- The person receiving the request (friend_id)
+      actor_id,     -- The person who sent the request (user_id)
+      type,
+      is_actionable,
+      is_completed,
+      created_at
+    )
+    VALUES (
+      NEW.friend_id,
+      NEW.user_id,
+      'friend_request',
+      true,
+      false,
+      NEW.created_at
+    )
+    ON CONFLICT DO NOTHING; -- Prevent duplicates if activity already exists
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create the trigger
+DROP TRIGGER IF EXISTS on_friendship_created ON friendships;
+CREATE TRIGGER on_friendship_created
+  AFTER INSERT ON friendships
+  FOR EACH ROW
+  EXECUTE FUNCTION create_friend_request_activity();
+
+-- This trigger will automatically create an activity record
+-- every time a new friendship with status 'pending' is inserted
+

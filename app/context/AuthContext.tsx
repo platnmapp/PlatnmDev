@@ -9,14 +9,25 @@ WebBrowser.maybeCompleteAuthSession();
 
 const { SharedUserDefaults } = NativeModules;
 
+console.log("session_debug: AuthContext module loaded, SharedUserDefaults available:", !!SharedUserDefaults);
+
 // Helper function to store complete session data
 const storeSessionData = (session: any) => {
+  const debugTag = "session_debug";
   try {
+    console.log(`${debugTag}: storeSessionData called`);
+    console.log(`${debugTag}: Session exists:`, !!session);
+    console.log(`${debugTag}: Session has access_token:`, !!session?.access_token);
+    console.log(`${debugTag}: Session has user:`, !!session?.user);
+    console.log(`${debugTag}: Session user ID:`, session?.user?.id);
+    
     // Check if SharedUserDefaults is available (may not be on all platforms)
     if (!SharedUserDefaults) {
-      console.log("⚠️ SharedUserDefaults not available, skipping session storage");
+      console.log(`${debugTag}: ERROR - SharedUserDefaults not available, skipping session storage`);
       return;
     }
+    
+    console.log(`${debugTag}: SharedUserDefaults is available`);
 
     if (session?.access_token) {
       const sessionData = {
@@ -26,19 +37,39 @@ const storeSessionData = (session: any) => {
         user_id: session.user?.id,
         expires_in: session.expires_in,
       };
-      console.log("📱 STORING SESSION DATA:", {
+      console.log(`${debugTag}: Preparing to store session data:`, {
         hasAccessToken: !!sessionData.access_token,
         userId: sessionData.user_id,
         expiresAt: sessionData.expires_at,
       });
-      SharedUserDefaults.setSessionData(JSON.stringify(sessionData));
-      console.log("✅ Session data stored successfully");
+      
+      const sessionDataString = JSON.stringify(sessionData);
+      console.log(`${debugTag}: Session data JSON string length:`, sessionDataString.length);
+      console.log(`${debugTag}: Session data JSON (first 100 chars):`, sessionDataString.substring(0, 100));
+      
+      // Call the native module method (returns a Promise)
+      console.log(`${debugTag}: Calling SharedUserDefaults.setSessionData...`);
+      SharedUserDefaults.setSessionData(sessionDataString)
+        .then(() => {
+          console.log(`${debugTag}: SUCCESS - Session data stored successfully in App Group`);
+        })
+        .catch((error: any) => {
+          console.error(`${debugTag}: ERROR - Failed to store session data in App Group:`, error);
+          console.error(`${debugTag}: Error details:`, JSON.stringify(error));
+        });
     } else {
-      console.log("🗑️ CLEARING SESSION DATA");
-      SharedUserDefaults.clearSessionData();
+      console.log(`${debugTag}: No access_token in session - clearing session data`);
+      SharedUserDefaults.clearSessionData()
+        .then(() => {
+          console.log(`${debugTag}: Session data cleared from App Group`);
+        })
+        .catch((error: any) => {
+          console.error(`${debugTag}: ERROR - Failed to clear session data from App Group:`, error);
+        });
     }
   } catch (error) {
-    console.error("❌ Failed to store session data:", error);
+    console.error(`${debugTag}: EXCEPTION in storeSessionData:`, error);
+    console.error(`${debugTag}: Exception details:`, JSON.stringify(error));
   }
 };
 
@@ -197,15 +228,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         try {
           setIsLoading(true);
+          const debugTag = "session_debug";
           console.log("=== AUTH STATE CHANGE ===");
           console.log("Event:", event);
           console.log("Session exists:", !!session);
           console.log("User exists:", !!session?.user);
+          console.log(`${debugTag}: AUTH STATE CHANGE - Event: ${event}, Session exists: ${!!session}, User exists: ${!!session?.user}`);
 
-          // Only store session data for actual auth events, not initial session checks
-          if (event !== "INITIAL_SESSION") {
-            storeSessionData(session);
-          }
+          // Store session data for all events (including INITIAL_SESSION) so Share Extension can access it
+          console.log(`${debugTag}: About to call storeSessionData with event: ${event}`);
+          storeSessionData(session);
 
           if (session?.user) {
             console.log("Setting user:", session.user.email);

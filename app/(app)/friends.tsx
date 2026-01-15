@@ -169,6 +169,12 @@ export default function Friends() {
           (dbUser.username || dbUser.first_name)
       );
 
+      // Debug logging
+      console.log("Fetched users from database:", data.length);
+      console.log("Connected user IDs:", Array.from(connectedUserIds));
+      console.log("Available users after filtering:", availableUsers.length);
+      console.log("Available usernames:", availableUsers.map(u => u.username).filter(Boolean));
+
       const transformedUsers: DatabaseUser[] = availableUsers.map((dbUser) => ({
         id: dbUser.id,
         first_name: dbUser.first_name,
