@@ -321,13 +321,17 @@ export default function Activity() {
     if (items.length === 0) return null;
 
     return (
-      <View className="mb-6">
+      <View className="mb-6" key={title}>
         <View className="mb-4 px-4">
           <Heading2 className="text-white">{title}</Heading2>
           <View className="h-px bg-[#373737] mt-2" />
         </View>
         <View className="space-y-2">
-          {items.map((item, index) => renderActivityItem(item, index))}
+          {items.map((item, index) => (
+            <React.Fragment key={item.id}>
+              {renderActivityItem(item, index)}
+            </React.Fragment>
+          ))}
         </View>
       </View>
     );

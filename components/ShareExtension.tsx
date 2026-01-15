@@ -268,7 +268,7 @@ export default function ShareExtension({
   };
 
   const renderFriendItem = (friend: Friend, index: number) => (
-    <Animatable.View animation="fadeInUp" duration={500} delay={index * 100}>
+    <Animatable.View key={friend.id} animation="fadeInUp" duration={500} delay={index * 100}>
       <View>
         {/* Separator line above each cell */}
         <View
@@ -280,7 +280,6 @@ export default function ShareExtension({
         />
 
         <TouchableOpacity
-          key={friend.id}
           style={{
             backgroundColor: "#0E0E0E",
             borderRadius: 16,

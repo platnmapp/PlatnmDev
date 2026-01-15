@@ -255,11 +255,10 @@ export class ShareExtensionService {
       }));
 
       // Use main supabase client for database operations to ensure proper authentication
+      // Use insert instead of upsert since we allow duplicate shares (same song shared multiple times)
       const { error: sharedSongsError } = await supabase
         .from("shared_songs")
-        .upsert(sharedSongs, {
-          onConflict: "sender_id,receiver_id,song_id,service",
-        });
+        .insert(sharedSongs);
 
       if (sharedSongsError) {
         console.error("Error creating shared songs:", sharedSongsError);
@@ -267,20 +266,20 @@ export class ShareExtensionService {
       }
 
       // Create activity records for each friend (excluding self)
+      // Note: Database may have both old columns (activity_type, related_user_id) and new columns (type, actor_id)
+      // Include both to ensure compatibility
       const activities = friendIds
         .filter((friendId) => friendId !== senderId)
         .map((friendId) => ({
           user_id: friendId, // Friend receives the activity
-          actor_id: senderId, // Current user is the actor
-          type: "song_sent",
+          actor_id: senderId, // Current user is the actor (new schema)
+          related_user_id: senderId, // Current user is the actor (old schema - keep for compatibility)
+          type: "song_sent", // New schema column - must match CHECK constraint allowed values
+          activity_type: "song_shared", // Old schema column - uses 'song_shared' (different constraint)
           song_title: song.title,
           song_artist: song.artist,
-          song_album: song.album,
-          song_artwork: song.artwork,
-          song_id: song.id,
-          song_service: song.service,
-          song_external_url: song.external_url,
-          is_actionable: true,
+          song_artwork: song.artwork || null,
+          is_actionable: false, // Song shares are informational, not actionable
           is_completed: false,
         }));
 
