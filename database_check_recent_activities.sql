@@ -39,3 +39,4 @@ WHERE a.song_title = (SELECT song_title FROM shared_songs ORDER BY created_at DE
   AND a.created_at > NOW() - INTERVAL '1 hour'
 ORDER BY a.created_at DESC;
 
+

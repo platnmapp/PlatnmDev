@@ -9,6 +9,7 @@ class ShareViewController: UIViewController {
     private var songArtist: String?
     private var songArtwork: String?
     private var songTrackId: String?
+    private var musicService: String = "spotify" // "spotify" or "apple"
     private let logger = OSLog(subsystem: "com.leonardodeltoro.platnm.app.ShareExtension", category: "ShareViewController")
     private let logIdentifier = "PLATNM_SHARE_EXT_2024" // Unique identifier for searching logs
     
@@ -120,7 +121,15 @@ class ShareViewController: UIViewController {
                 
                 // Update UI with URL info immediately (while metadata loads)
                 DispatchQueue.main.async {
-                    self.songTitleLabel.text = "Spotify Track"
+                    if url.contains("music.apple.com") {
+                        NSLog("apple_share_debug: Setting UI for Apple Music")
+                        print("apple_share_debug: Setting UI for Apple Music")
+                        self.songTitleLabel.text = "Apple Music Track"
+                        self.musicService = "apple"
+                    } else {
+                        self.songTitleLabel.text = "Spotify Track"
+                        self.musicService = "spotify"
+                    }
                     self.artistLabel.text = "Loading details..."
                 }
                 
@@ -363,25 +372,59 @@ class ShareViewController: UIViewController {
         print("\(logIdentifier): fetchMusicMetadata called with URL: \(urlString)")
         fputs("\(logIdentifier): fetchMusicMetadata: \(urlString)\n", stderr)
         
-        // Extract track ID from Spotify URL
-        guard urlString.contains("open.spotify.com/track/") else {
-            NSLog("\(logIdentifier): Invalid Spotify URL")
+        // Determine service type and extract track ID
+        var trackId: String?
+        
+        if urlString.contains("open.spotify.com/track/") {
+            // Spotify URL: extract track ID
+            let pattern = #"track/([a-zA-Z0-9]+)"#
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
+                  let match = regex.firstMatch(in: urlString, options: [], range: NSRange(location: 0, length: urlString.utf16.count)),
+                  match.numberOfRanges > 1,
+                  let trackIdRange = Range(match.range(at: 1), in: urlString) else {
+                NSLog("\(logIdentifier): Could not extract Spotify track ID")
+                return
+            }
+            trackId = String(urlString[trackIdRange])
+            self.musicService = "spotify"
+            NSLog("\(logIdentifier): Extracted Spotify track ID: \(trackId ?? "nil")")
+        } else if urlString.contains("music.apple.com") {
+            // Apple Music URL: extract track ID from ?i= parameter
+            NSLog("apple_share_debug: Detected Apple Music URL: \(urlString)")
+            print("apple_share_debug: Detected Apple Music URL: \(urlString)")
+            
+            guard let url = URL(string: urlString),
+                  let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                  let queryItems = components.queryItems,
+                  let songId = queryItems.first(where: { $0.name == "i" })?.value else {
+                NSLog("apple_share_debug: ERROR - Could not extract Apple Music track ID (missing ?i= parameter)")
+                print("apple_share_debug: ERROR - Could not extract Apple Music track ID")
+                // Show error in UI
+                DispatchQueue.main.async {
+                    self.songTitleLabel.text = "Apple Music Track"
+                    self.artistLabel.text = "Invalid link format"
+                }
+                return
+            }
+            trackId = songId
+            self.musicService = "apple"
+            NSLog("apple_share_debug: Extracted Apple Music track ID: \(trackId ?? "nil")")
+            print("apple_share_debug: Extracted Apple Music track ID: \(trackId ?? "nil")")
+        } else {
+            NSLog("\(logIdentifier): Unsupported URL type - must be Spotify or Apple Music")
+            DispatchQueue.main.async {
+                self.songTitleLabel.text = "Unsupported Link"
+                self.artistLabel.text = "Only Spotify and Apple Music are supported"
+            }
             return
         }
         
-        // Extract track ID using regex
-        let pattern = #"track/([a-zA-Z0-9]+)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
-              let match = regex.firstMatch(in: urlString, options: [], range: NSRange(location: 0, length: urlString.utf16.count)),
-              match.numberOfRanges > 1,
-              let trackIdRange = Range(match.range(at: 1), in: urlString) else {
+        guard let extractedTrackId = trackId else {
             NSLog("\(logIdentifier): Could not extract track ID")
             return
         }
         
-        let trackId = String(urlString[trackIdRange])
-        self.songTrackId = trackId
-        NSLog("\(logIdentifier): Extracted track ID: \(trackId)")
+        self.songTrackId = extractedTrackId
         
         // Call Supabase Edge Function to get metadata
         // Using the process-music-link function which handles Spotify API calls server-side
@@ -390,7 +433,7 @@ class ShareViewController: UIViewController {
         
         guard let requestUrl = URL(string: functionUrl) else {
             NSLog("\(logIdentifier): Invalid function URL: \(functionUrl)")
-            fetchSpotifyMetadataDirectly(trackId: trackId, urlString: urlString)
+            fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
             return
         }
         
@@ -406,57 +449,165 @@ class ShareViewController: UIViewController {
         NSLog("\(logIdentifier): Authorization header set to: Bearer \(anonKey.prefix(20))...")
         
         let requestBody: [String: Any] = ["link": urlString]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+        if let bodyData = try? JSONSerialization.data(withJSONObject: requestBody) {
+            request.httpBody = bodyData
+            NSLog("\(logIdentifier): Request body: \(String(data: bodyData, encoding: .utf8) ?? "nil")")
+        } else {
+            NSLog("\(logIdentifier): ERROR - Failed to serialize request body")
+        }
         
-        NSLog("\(logIdentifier): Making request to: \(functionUrl) with URL: \(urlString)")
+        NSLog("\(logIdentifier): Making request to: \(functionUrl)")
+        NSLog("\(logIdentifier): Request URL string: \(urlString)")
+        NSLog("\(logIdentifier): Detected service: \(musicService), Track ID: \(extractedTrackId)")
+        print("\(logIdentifier): Request URL: \(urlString), Service: \(musicService)")
         
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { return }
-            
-            if let error = error {
-                NSLog("\(logIdentifier): Error fetching metadata: \(error.localizedDescription)")
-                self.fetchSpotifyMetadataDirectly(trackId: trackId, urlString: urlString)
+        if musicService == "apple" {
+            NSLog("apple_share_debug: Making Edge Function request for Apple Music")
+            print("apple_share_debug: Service: apple, Track ID: \(extractedTrackId), URL: \(urlString)")
+            NSLog("apple_share_debug: Request URL: \(functionUrl)")
+            NSLog("apple_share_debug: Request body will contain link: \(urlString)")
+        }
+        
+        // Configure URLSession with timeout for Share Extension
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30.0
+        config.timeoutIntervalForResource = 30.0
+        let session = URLSession(configuration: config)
+        
+        NSLog("\(logIdentifier): Starting URLSession task...")
+        if musicService == "apple" {
+            NSLog("apple_share_debug: Starting URLSession task for Apple Music metadata")
+        }
+        
+        let identifier = logIdentifier // Capture before closure
+        session.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else {
+                NSLog("\(identifier): ERROR - self is nil in response handler")
+                print("apple_share_debug: ERROR - self is nil in response handler")
                 return
             }
             
-            if let httpResponse = response as? HTTPURLResponse {
-                NSLog("\(logIdentifier): Response status code: \(httpResponse.statusCode)")
-                
-                if httpResponse.statusCode != 200 {
-                    if let data = data, let errorString = String(data: data, encoding: .utf8) {
-                        NSLog("\(logIdentifier): Error response: \(errorString)")
-                    }
-                    self.fetchSpotifyMetadataDirectly(trackId: trackId, urlString: urlString)
-                    return
+            NSLog("\(logIdentifier): URLSession completion handler called")
+            if self.musicService == "apple" {
+                NSLog("apple_share_debug: URLSession completion handler called for Apple Music")
+                print("apple_share_debug: Response handler executed")
+            }
+            
+            if let error = error {
+                NSLog("\(logIdentifier): ERROR - Network error fetching metadata: \(error.localizedDescription)")
+                print("\(logIdentifier): ERROR - Network error: \(error)")
+                if self.musicService == "apple" {
+                    NSLog("apple_share_debug: ERROR - Network error for Apple Music: \(error.localizedDescription)")
+                    print("apple_share_debug: ERROR - Network error for Apple Music")
                 }
+                DispatchQueue.main.async {
+                    self.songTitleLabel.text = self.musicService == "apple" ? "Apple Music Track" : "Spotify Track"
+                    self.artistLabel.text = "Failed to load details"
+                }
+                self.fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                NSLog("\(logIdentifier): ERROR - Invalid response type")
+                self.fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
+                return
+            }
+            
+            NSLog("\(logIdentifier): Response status code: \(httpResponse.statusCode)")
+            print("\(logIdentifier): Response status code: \(httpResponse.statusCode)")
+            
+            if httpResponse.statusCode != 200 {
+                let errorData = data.flatMap { String(data: $0, encoding: .utf8) } ?? "No error data"
+                NSLog("\(logIdentifier): ERROR - HTTP \(httpResponse.statusCode): \(errorData)")
+                print("\(logIdentifier): ERROR - HTTP \(httpResponse.statusCode): \(errorData)")
+                if self.musicService == "apple" {
+                    NSLog("apple_share_debug: ERROR - HTTP \(httpResponse.statusCode) for Apple Music: \(errorData)")
+                    print("apple_share_debug: ERROR - HTTP \(httpResponse.statusCode) for Apple Music")
+                }
+                DispatchQueue.main.async {
+                    self.songTitleLabel.text = self.musicService == "apple" ? "Apple Music Track" : "Spotify Track"
+                    self.artistLabel.text = "Failed to load (HTTP \(httpResponse.statusCode))"
+                }
+                self.fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
+                return
             }
             
             guard let data = data else {
-                NSLog("\(logIdentifier): No data in response")
-                self.fetchSpotifyMetadataDirectly(trackId: trackId, urlString: urlString)
+                NSLog("\(logIdentifier): ERROR - No data in response")
+                self.fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
                 return
             }
             
-            NSLog("\(logIdentifier): Response data: \(String(data: data, encoding: .utf8) ?? "nil")")
+            let responseString = String(data: data, encoding: .utf8) ?? "nil"
+            NSLog("\(logIdentifier): Response data (first 500 chars): \(String(responseString.prefix(500)))")
+            print("\(logIdentifier): Response data: \(responseString)")
+            
+            if self.musicService == "apple" {
+                NSLog("apple_share_debug: Edge Function response for Apple Music (first 500 chars): \(String(responseString.prefix(500)))")
+                print("apple_share_debug: Full response: \(responseString)")
+            }
             
             guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                NSLog("\(logIdentifier): Failed to parse JSON")
-                self.fetchSpotifyMetadataDirectly(trackId: trackId, urlString: urlString)
+                NSLog("\(logIdentifier): ERROR - Failed to parse JSON. Response was: \(responseString)")
+                print("\(logIdentifier): ERROR - Failed to parse JSON")
+                if self.musicService == "apple" {
+                    NSLog("apple_share_debug: ERROR - Failed to parse JSON for Apple Music. Response: \(responseString)")
+                    print("apple_share_debug: ERROR - Failed to parse JSON for Apple Music")
+                }
+                self.fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
                 return
             }
             
-            NSLog("\(logIdentifier): Parsed JSON: \(json)")
+            NSLog("\(logIdentifier): Parsed JSON keys: \(json.keys.joined(separator: ", "))")
+            print("\(logIdentifier): Parsed JSON: \(json)")
+            
+            if self.musicService == "apple" {
+                NSLog("apple_share_debug: Parsed JSON keys for Apple Music: \(json.keys.joined(separator: ", "))")
+                print("apple_share_debug: Parsed JSON: \(json)")
+            }
+            
+            // Check for error in response
+            if let errorMessage = json["error"] as? String {
+                NSLog("\(logIdentifier): ERROR - Edge Function returned error: \(errorMessage)")
+                print("\(logIdentifier): ERROR - Edge Function error: \(errorMessage)")
+                if self.musicService == "apple" {
+                    NSLog("apple_share_debug: ERROR - Edge Function error for Apple Music: \(errorMessage)")
+                    print("apple_share_debug: ERROR - Edge Function error: \(errorMessage)")
+                }
+                DispatchQueue.main.async {
+                    self.songTitleLabel.text = self.musicService == "apple" ? "Apple Music Track" : "Spotify Track"
+                    self.artistLabel.text = "Error: \(errorMessage)"
+                }
+                self.fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
+                return
+            }
             
             guard let title = json["title"] as? String,
                   let artist = json["artist"] as? String else {
-                NSLog("\(logIdentifier): Missing title or artist in response")
-                self.fetchSpotifyMetadataDirectly(trackId: trackId, urlString: urlString)
+                NSLog("\(logIdentifier): ERROR - Missing title or artist in response. JSON keys: \(json.keys.joined(separator: ", "))")
+                print("\(logIdentifier): ERROR - Missing title or artist. Full JSON: \(json)")
+                if self.musicService == "apple" {
+                    NSLog("apple_share_debug: ERROR - Missing title or artist for Apple Music. Keys: \(json.keys.joined(separator: ", "))")
+                    print("apple_share_debug: ERROR - Missing title or artist. Full JSON: \(json)")
+                }
+                DispatchQueue.main.async {
+                    self.songTitleLabel.text = self.musicService == "apple" ? "Apple Music Track" : "Spotify Track"
+                    self.artistLabel.text = "Missing metadata"
+                }
+                self.fetchMetadataDirectly(trackId: extractedTrackId, urlString: urlString)
                 return
             }
             
             let artworkURL = json["artworkURL"] as? String
             
-            NSLog("\(logIdentifier): Successfully fetched metadata - Title: \(title), Artist: \(artist), Artwork: \(artworkURL ?? "nil")")
+            NSLog("\(logIdentifier): ✅ SUCCESS - Fetched metadata - Title: \(title), Artist: \(artist), Artwork: \(artworkURL ?? "nil"), Service: \(self.musicService)")
+            print("\(logIdentifier): ✅ SUCCESS - Title: \(title), Artist: \(artist)")
+            
+            if self.musicService == "apple" {
+                NSLog("apple_share_debug: ✅ SUCCESS - Apple Music metadata - Title: \(title), Artist: \(artist), Artwork: \(artworkURL ?? "nil")")
+                print("apple_share_debug: ✅ SUCCESS - Title: \(title), Artist: \(artist)")
+            }
             
             DispatchQueue.main.async {
                 self.songTitle = title
@@ -467,17 +618,26 @@ class ShareViewController: UIViewController {
         }.resume()
     }
     
-    private func fetchSpotifyMetadataDirectly(trackId: String, urlString: String) {
-        NSLog("\(logIdentifier): Trying direct Spotify API call for track: \(trackId)")
+    private func fetchMetadataDirectly(trackId: String, urlString: String) {
+        NSLog("\(logIdentifier): Trying fallback for track: \(trackId), service: \(musicService)")
+        
+        if musicService == "apple" {
+            NSLog("apple_share_debug: Using fallback for Apple Music - track ID: \(trackId)")
+            print("apple_share_debug: Fallback mode for Apple Music")
+        }
         
         // Fallback: Show basic info extracted from URL
-        // Extract track ID and show it, or show a generic message
         DispatchQueue.main.async {
-            // Show the track ID or a fallback message
-            self.songTitleLabel.text = "Spotify Track"
-            self.artistLabel.text = urlString.contains("track/") ? "Loading details..." : "Share this song"
+            if self.musicService == "apple" {
+                NSLog("apple_share_debug: Showing fallback UI for Apple Music")
+                self.songTitleLabel.text = "Apple Music Track"
+                self.artistLabel.text = urlString.contains("music.apple.com") ? "Loading details..." : "Share this song"
+            } else {
+                self.songTitleLabel.text = "Spotify Track"
+                self.artistLabel.text = urlString.contains("track/") ? "Loading details..." : "Share this song"
+            }
             
-            NSLog("\(self.logIdentifier): Showing fallback UI - track ID: \(trackId)")
+            NSLog("\(self.logIdentifier): Showing fallback UI - track ID: \(trackId), service: \(self.musicService)")
             
             // Even without metadata, we can still allow sharing
             // The UI is already visible, user can select friends and share
@@ -525,17 +685,17 @@ class ShareViewController: UIViewController {
         NSLog("\(logIdentifier): Selected friends: \(selectedFriendIds)")
         NSLog("\(logIdentifier): Song metadata - Title: \(songTitle ?? "nil"), Artist: \(songArtist ?? "nil")")
         
-        // Create shared songs and activities in database
-        createShareRecords(urlString: urlString)
-        
-        // Store in App Group for main app
-        storeInAppGroup(urlString: urlString)
-        
-        // Process share and dismiss
-        processShare(urlString: urlString)
+        // Create shared songs and activities in database, then dismiss
+        createShareRecords(urlString: urlString) { [weak self] in
+            guard let self = self else { return }
+            // Clear any pending shared URL so the main app doesn't prompt again
+            self.clearSharedMusicURL()
+            // Process share and dismiss only after requests finish
+            self.processShare(urlString: urlString)
+        }
     }
     
-    private func createShareRecords(urlString: String) {
+    private func createShareRecords(urlString: String, completion: @escaping () -> Void) {
         let debugId = "share_with_platnm_friends"
         NSLog("\(debugId): ====== createShareRecords CALLED ======")
         
@@ -546,6 +706,7 @@ class ShareViewController: UIViewController {
               let accessToken = sessionJson["access_token"] as? String,
               let senderId = sessionJson["user_id"] as? String else {
             NSLog("\(debugId): ERROR - Could not get session data for sharing")
+            completion()
             return
         }
         
@@ -557,9 +718,15 @@ class ShareViewController: UIViewController {
         let title = songTitle ?? "Unknown Song"
         let artist = songArtist ?? "Unknown Artist"
         let artwork = songArtwork ?? ""
+        let service = musicService // Use the detected service type
         
-        NSLog("\(debugId): Creating share records - Track: \(trackId), Title: \(title), Artist: \(artist)")
+        NSLog("\(debugId): Creating share records - Track: \(trackId), Title: \(title), Artist: \(artist), Service: \(service)")
         NSLog("\(debugId): Creating shared_songs for \(selectedFriendIds.count) friends")
+        
+        if service == "apple" {
+            NSLog("apple_share_debug: Creating Apple Music share records - Track: \(trackId), Title: \(title), Artist: \(artist)")
+            print("apple_share_debug: Creating share records for \(selectedFriendIds.count) friends")
+        }
         
         // Create shared_songs records for each friend
         let sharedSongs = selectedFriendIds.map { friendId in
@@ -570,18 +737,22 @@ class ShareViewController: UIViewController {
                 "song_title": title,
                 "song_artist": artist,
                 "song_artwork": artwork,
-                "service": "spotify",
+                "service": service, // Use detected service (spotify or apple)
                 "external_url": urlString,
                 "is_queued": false,  // Not queued when sharing to a friend
                 "liked": NSNull()    // Explicitly set to NULL (unreacted) so it appears in inbox
             ]
-            NSLog("\(debugId): Creating shared_song record for friend \(friendId) with is_queued: false, liked: NULL")
+            NSLog("\(debugId): Creating shared_song record for friend \(friendId) with service: \(service), is_queued: false, liked: NULL")
+            if service == "apple" {
+                NSLog("apple_share_debug: Creating Apple Music shared_song for friend \(friendId)")
+            }
             return record
         }
         
         let sharedSongsUrl = "\(supabaseUrl)/rest/v1/shared_songs"
         guard let sharedSongsRequestUrl = URL(string: sharedSongsUrl) else {
             NSLog("\(debugId): ERROR - Invalid shared_songs URL")
+            completion()
             return
         }
         
@@ -596,6 +767,7 @@ class ShareViewController: UIViewController {
             sharedSongsRequest.httpBody = try JSONSerialization.data(withJSONObject: sharedSongs)
         } catch {
             NSLog("\(debugId): ERROR - Failed to serialize shared_songs: \(error)")
+            completion()
             return
         }
         
@@ -603,6 +775,7 @@ class ShareViewController: UIViewController {
             guard let self = self else { return }
             if let error = error {
                 NSLog("\(debugId): ERROR - Failed to create shared_songs: \(error.localizedDescription)")
+                completion()
                 return
             }
             
@@ -620,19 +793,30 @@ class ShareViewController: UIViewController {
                         NSLog("\(debugId): SUCCESS - Created shared_songs records (no response data)")
                     }
                     // Now create activities
-                    self.createActivities(senderId: senderId, title: title, artist: artist, artwork: artwork, accessToken: accessToken, anonKey: anonKey, supabaseUrl: supabaseUrl, debugId: debugId)
+                    self.createActivities(
+                        senderId: senderId,
+                        title: title,
+                        artist: artist,
+                        artwork: artwork,
+                        accessToken: accessToken,
+                        anonKey: anonKey,
+                        supabaseUrl: supabaseUrl,
+                        debugId: debugId,
+                        completion: completion
+                    )
                 } else {
                     if let data = data, let errorString = String(data: data, encoding: .utf8) {
                         NSLog("\(debugId): ERROR - shared_songs response (status \(httpResponse.statusCode)): \(errorString)")
                     } else {
                         NSLog("\(debugId): ERROR - shared_songs request failed with status \(httpResponse.statusCode) and no error message")
                     }
+                    completion()
                 }
             }
         }.resume()
     }
     
-    private func createActivities(senderId: String, title: String, artist: String, artwork: String, accessToken: String, anonKey: String, supabaseUrl: String, debugId: String) {
+    private func createActivities(senderId: String, title: String, artist: String, artwork: String, accessToken: String, anonKey: String, supabaseUrl: String, debugId: String, completion: @escaping () -> Void) {
         NSLog("\(debugId): ====== createActivities CALLED ======")
         NSLog("\(debugId): Creating activities for \(selectedFriendIds.count) friends")
         
@@ -657,6 +841,7 @@ class ShareViewController: UIViewController {
         let activitiesUrl = "\(supabaseUrl)/rest/v1/activities"
         guard let activitiesRequestUrl = URL(string: activitiesUrl) else {
             NSLog("\(debugId): ERROR - Invalid activities URL")
+            completion()
             return
         }
         
@@ -673,12 +858,14 @@ class ShareViewController: UIViewController {
             activitiesRequest.httpBody = jsonData
         } catch {
             NSLog("\(debugId): ERROR - Failed to serialize activities: \(error)")
+            completion()
             return
         }
         
         URLSession.shared.dataTask(with: activitiesRequest) { data, response, error in
             if let error = error {
                 NSLog("\(debugId): ERROR - Failed to create activities: \(error.localizedDescription)")
+                completion()
                 return
             }
             
@@ -697,26 +884,45 @@ class ShareViewController: UIViewController {
                     } else {
                         NSLog("\(debugId): SUCCESS - Created activity records (no response data)")
                     }
+                    completion()
                 } else {
                     if let data = data, let errorString = String(data: data, encoding: .utf8) {
                         NSLog("\(debugId): ERROR - activities response (status \(httpResponse.statusCode)): \(errorString)")
                     } else {
                         NSLog("\(debugId): ERROR - activities request failed with status \(httpResponse.statusCode) and no error message")
                     }
+                    completion()
                 }
             }
         }.resume()
     }
     
     private func extractTrackId(from urlString: String) -> String {
-        let pattern = #"track/([a-zA-Z0-9]+)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
-              let match = regex.firstMatch(in: urlString, options: [], range: NSRange(location: 0, length: urlString.utf16.count)),
-              match.numberOfRanges > 1,
-              let trackIdRange = Range(match.range(at: 1), in: urlString) else {
-            return urlString // Fallback to full URL if can't extract
+        // Try Spotify pattern first
+        if urlString.contains("open.spotify.com/track/") {
+            let pattern = #"track/([a-zA-Z0-9]+)"#
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: []),
+                  let match = regex.firstMatch(in: urlString, options: [], range: NSRange(location: 0, length: urlString.utf16.count)),
+                  match.numberOfRanges > 1,
+                  let trackIdRange = Range(match.range(at: 1), in: urlString) else {
+                return urlString // Fallback to full URL if can't extract
+            }
+            return String(urlString[trackIdRange])
         }
-        return String(urlString[trackIdRange])
+        
+        // Try Apple Music pattern
+        if urlString.contains("music.apple.com") {
+            guard let url = URL(string: urlString),
+                  let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                  let queryItems = components.queryItems,
+                  let songId = queryItems.first(where: { $0.name == "i" })?.value else {
+                return urlString // Fallback to full URL if can't extract
+            }
+            return songId
+        }
+        
+        // Fallback to full URL if neither pattern matches
+        return urlString
     }
     
     private func storeInAppGroup(urlString: String) {
@@ -728,6 +934,16 @@ class ShareViewController: UIViewController {
             NSLog("\(logIdentifier): Stored URL in App Group: \(urlString)")
         }
     }
+
+    private func clearSharedMusicURL() {
+        let appGroupId = "group.com.platnm.5a1fixcuqweopqweopqwieopwqieopqwieoiqwopieopqiwopeiqwpoeioqwiepoqiwjdnaskncklnsdlfnlkas9635.app"
+        
+        if let sharedDefaults = UserDefaults(suiteName: appGroupId) {
+            sharedDefaults.removeObject(forKey: "sharedMusicURL")
+            sharedDefaults.synchronize()
+            NSLog("\(logIdentifier): Cleared sharedMusicURL from App Group after sharing")
+        }
+    }
     
     private func processShare(urlString: String) {
         NSLog("\(logIdentifier): processShare called with URL: \(urlString)")
@@ -736,7 +952,7 @@ class ShareViewController: UIViewController {
         
         let identifier = logIdentifier // Capture identifier before closure
         extensionContext.completeRequest(returningItems: [], completionHandler: { (expired) in
-            NSLog("\(identifier): Extension completed - returning to Spotify")
+            NSLog("\(identifier): Extension completed - returning to music app")
         })
     }
     

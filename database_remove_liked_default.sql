@@ -28,3 +28,4 @@ FROM information_schema.columns
 WHERE table_name = 'shared_songs' 
   AND column_name = 'is_queued';
 
+

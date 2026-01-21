@@ -51,6 +51,14 @@ function pemToArrayBuffer(pem: string) {
 }
 
 async function getAppleMusicToken() {
+  // Debug: Log what we're getting (don't log the full private key)
+  console.log("Debug - APPLE_TEAM_ID exists:", !!APPLE_TEAM_ID);
+  console.log("Debug - APPLE_KEY_ID exists:", !!APPLE_KEY_ID);
+  console.log("Debug - APPLE_PRIVATE_KEY exists:", !!APPLE_PRIVATE_KEY);
+  console.log("Debug - APPLE_TEAM_ID value:", APPLE_TEAM_ID);
+  console.log("Debug - APPLE_KEY_ID value:", APPLE_KEY_ID);
+  console.log("Debug - APPLE_PRIVATE_KEY length:", APPLE_PRIVATE_KEY?.length || 0);
+  
   if (!APPLE_PRIVATE_KEY || !APPLE_KEY_ID || !APPLE_TEAM_ID) {
     throw new Error("Apple Music credentials are not set in environment variables.");
   }
@@ -93,41 +101,40 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create a Supabase client with the service role key to access the database
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // Check for a valid token in the database
-    let { data: tokenData, error: tokenError } = await supabaseAdmin
-      .from("spotify_config")
-      .select("access_token, expires_at")
-      .eq("id", 1)
-      .single();
-
-    if (tokenError || !tokenData || new Date(tokenData.expires_at) < new Date()) {
-      // Token is invalid or expired, get a new one
-      console.log("Spotify token expired or not found, fetching a new one.");
-      const new_token = await getNewSpotifyToken();
-      const newExpiresAt = new Date(new Date().getTime() + new_token.expiresIn * 1000).toISOString();
-
-      // Update the database with the new token
-      const { data, error } = await supabaseAdmin
-        .from("spotify_config")
-        .update({ access_token: new_token.accessToken, expires_at: newExpiresAt })
-        .eq("id", 1)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      tokenData = data;
-    }
-    
-    const accessToken = tokenData.access_token;
-
-    // --- Process the music link using the valid token ---
+    // --- Process the music link ---
     if (link.includes("open.spotify.com")) {
+      // Create a Supabase client with the service role key to access the database
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+
+      // Check for a valid token in the database
+      let { data: tokenData, error: tokenError } = await supabaseAdmin
+        .from("spotify_config")
+        .select("access_token, expires_at")
+        .eq("id", 1)
+        .single();
+
+      if (tokenError || !tokenData || new Date(tokenData.expires_at) < new Date()) {
+        // Token is invalid or expired, get a new one
+        console.log("Spotify token expired or not found, fetching a new one.");
+        const new_token = await getNewSpotifyToken();
+        const newExpiresAt = new Date(new Date().getTime() + new_token.expiresIn * 1000).toISOString();
+
+        // Update the database with the new token
+        const { data, error } = await supabaseAdmin
+          .from("spotify_config")
+          .update({ access_token: new_token.accessToken, expires_at: newExpiresAt })
+          .eq("id", 1)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        tokenData = data;
+      }
+      
+      const accessToken = tokenData.access_token;
       const trackIdMatch = link.match(/track\/(\w+)/);
       if (!trackIdMatch) throw new Error("Invalid Spotify URL");
 
